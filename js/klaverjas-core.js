@@ -1,5 +1,5 @@
 /**
- * KLAVERJAS CORE (VERSIE 2.2 - MET OPGELOSTE BUGS)
+ * KLAVERJAS CORE (VERSIE 2.3 - MET HAND-ROEM DETECTIE)
  */
 
 const KJCore = {
@@ -18,7 +18,7 @@ const KJCore = {
     tricksWon: [0, 0, 0, 0],         
 
     init: function() {
-        this.deck = KJConfig.createDeck(); //
+        this.deck = KJConfig.createDeck(); 
         this.shuffle(this.deck);
         this.deal();
         
@@ -64,9 +64,44 @@ const KJCore = {
     },
 
     /**
-     * CONTROLEERT OF EEN ZET GELDIG IS
-     * Verbetering v2.2: Overtroef-logica toegevoegd
+     * NIEUW: Controleert op roem in de volledige hand (bijv. aan het begin van het spel)
      */
+    checkHandRoem: function(playerIndex) {
+        let totalRoem = 0;
+        const hand = [...this.hands[playerIndex]];
+        
+        // 1. Carré (Vier dezelfde kaarten)
+        const counts = {};
+        hand.forEach(c => counts[c.rank] = (counts[c.rank] || 0) + 1);
+        for (let rank in counts) {
+            if (counts[rank] === 4) {
+                totalRoem += (rank === 'J' ? 200 : 100);
+            }
+        }
+
+        // 2. Reeksen (Drieluik/Vierluik)
+        const suits = { 'h': [], 'd': [], 's': [], 'c': [] };
+        hand.forEach(c => suits[c.suit].push(KJConfig.RANKS.indexOf(c.rank)));
+        
+        for (let s in suits) {
+            const indices = suits[s].sort((a, b) => a - b);
+            let consecutive = 1;
+            for (let i = 0; i < indices.length - 1; i++) {
+                if (indices[i+1] === indices[i] + 1) {
+                    consecutive++;
+                } else {
+                    if (consecutive === 3) totalRoem += 20;
+                    if (consecutive >= 4) totalRoem += 50;
+                    consecutive = 1;
+                }
+            }
+            if (consecutive === 3) totalRoem += 20;
+            if (consecutive >= 4) totalRoem += 50;
+        }
+
+        return totalRoem;
+    },
+
     isValidMove: function(card, playerIndex) {
         if (playerIndex !== this.turnIndex) return false;
         if (this.currentTrick.length === 0) return true;
@@ -74,20 +109,17 @@ const KJCore = {
         const hand = this.hands[playerIndex];
         const requestedSuit = this.currentTrick[0].card.suit; 
 
-        // 1. Kleur bekennen is altijd verplicht
         const hasRequested = hand.some(c => c.suit === requestedSuit);
         if (hasRequested) {
             return card.suit === requestedSuit;
         }
 
-        // 2. Kan niet bekennen? Dan troefregels toepassen
         const hasTrump = hand.some(c => c.suit === this.trumpSuit);
         const currentWinner = this.getTrickWinner(this.currentTrick);
         const partnerIndex = (playerIndex + 2) % 4;
         const partnerHasSlag = (currentWinner.playerIndex === partnerIndex);
 
         if (hasTrump) {
-            // Zoek de hoogste troef op tafel
             let highestTrumpStrength = -1;
             this.currentTrick.forEach(p => {
                 if (p.card.suit === this.trumpSuit) {
@@ -96,11 +128,9 @@ const KJCore = {
                 }
             });
 
-            // Als partner de slag NIET heeft, moet je troeven (en overtroeven)
             if (!partnerHasSlag) {
                 if (card.suit !== this.trumpSuit) return false; 
 
-                // Check of je hoger KUNT dan wat er op tafel ligt
                 const canOverTrump = hand.some(c => 
                     c.suit === this.trumpSuit && 
                     KJConfig.VALUES_TRUMP[c.rank].strength > highestTrumpStrength
@@ -164,17 +194,14 @@ const KJCore = {
         let roemPoints = 0;
         const cards = trick.map(p => p.card);
 
-        // 1. STUK CHECK
         const hasTrumpKing = cards.some(c => c.rank === 'K' && c.suit === this.trumpSuit);
         const hasTrumpQueen = cards.some(c => c.rank === 'Q' && c.suit === this.trumpSuit);
         if (hasTrumpKing && hasTrumpQueen) roemPoints += 20;
 
-        // 2. CARRÉ
         const firstRank = cards[0].rank;
         const isCarre = cards.every(c => c.rank === firstRank);
         if (isCarre) return roemPoints + 100;
 
-        // 3. REEKSEN
         const suits = {};
         cards.forEach(c => {
             if (!suits[c.suit]) suits[c.suit] = [];

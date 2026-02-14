@@ -1,5 +1,5 @@
 /**
- * KLAVERJAS UI (Lumina Versie 2.2)
+ * KLAVERJAS UI (Lumina Versie 2.2 - Met Waaier Effect)
  */
 const KJUI = {
     el: {},
@@ -27,12 +27,24 @@ const KJUI = {
         `;
     },
 
-    // Teken de kaarten in de hand van de speler
+    /**
+     * Teken de kaarten in de hand van de speler
+     * VERBETERING: Kaarten worden nu in een waaier (arc) getoond
+     */
     renderHand: function(hand) {
         this.el.hand.innerHTML = ''; 
+        const totalCards = hand.length;
+        
         hand.forEach((card, index) => {
             const wrapper = document.createElement('div');
             wrapper.className = 'hand-card'; 
+            
+            // Bereken de rotatie en verticale verschuiving voor het waaier-effect
+            const mid = (totalCards - 1) / 2;
+            const rotate = (index - mid) * 4; // Draai de kaarten lichtjes
+            const translateY = Math.abs(index - mid) * 4; // De buitenste kaarten staan iets lager
+
+            wrapper.style.transform = `rotate(${rotate}deg) translateY(${translateY}px)`;
             wrapper.innerHTML = this.createCardHTML(card);
             
             // Klik event koppelen
@@ -106,19 +118,40 @@ const KJUI = {
         animCard.classList.add(endPositions[playerIndex]);
     },
 
-    clearTableAnimated: function(winnerIndex) {
-        const cards = document.querySelectorAll('.table-anim-card');
-        cards.forEach(card => {
-            card.style.transform = 'scale(0) rotate(360deg)';
-            card.style.opacity = '0';
-        });
-        setTimeout(() => {
-            cards.forEach(c => c.remove());
-        }, 500);
-    },
+/**
+ * Verbetert de animatie: kaarten vliegen naar de winnaar van de slag
+ */
+clearTableAnimated: function(winnerIndex) {
+    const cards = document.querySelectorAll('.table-anim-card');
+    
+    // Bepaal de doelpositie op basis van de winnaar (overeenkomstig met player CSS)
+    const targets = [
+        { bottom: '-100px', left: '50%' },  // Jij (Player 0)
+        { top: '50%', left: '-100px' },     // Links (Player 1)
+        { top: '-100px', left: '50%' },     // Maat (Player 2)
+        { top: '50%', left: '110%' }        // Rechts (Player 3)
+    ];
+
+    const target = targets[winnerIndex];
+
+    cards.forEach(card => {
+        // Stap 1: Beweeg naar de winnende speler
+        card.style.transition = 'all 0.5s ease-in';
+        card.style.top = target.top || 'auto';
+        card.style.bottom = target.bottom || 'auto';
+        card.style.left = target.left || 'auto';
+        card.style.transform = 'scale(0.2) rotate(15deg)';
+        card.style.opacity = '0';
+    });
+
+    // Stap 2: Verwijder de elementen uit de DOM na de animatie
+    setTimeout(() => {
+        cards.forEach(c => c.remove());
+    }, 550);
+},
 
     /**
-     * NIEUW: Toont de vorige slag in de overlay
+     * Toont de vorige slag in de overlay
      */
     renderLastTrick: function(trick) {
         const overlay = document.getElementById('last-trick-overlay');
@@ -130,7 +163,6 @@ const KJUI = {
         trick.forEach(play => {
             const cardWrapper = document.createElement('div');
             cardWrapper.innerHTML = this.createCardHTML(play.card);
-            // We voegen alleen het binnenste element toe
             container.appendChild(cardWrapper.firstElementChild);
         });
 

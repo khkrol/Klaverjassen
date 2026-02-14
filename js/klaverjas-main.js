@@ -1,11 +1,12 @@
 /**
- * KLAVERJAS MAIN (Versie 2.2 - Met Vorige Slag ondersteuning)
+ * KLAVERJAS MAIN (Versie 2.3 - Met Hand-Roem Integratie)
  */
 const KlaverjasMain = {
     gameSpeed: 900,      
     playingTeam: null,   
     bidderIndex: 0,
     passesCount: 0,
+    isFirstTrick: true, // Nieuwe vlag om roem in hand te checken
 
     init: function() {
         this.showMenu();
@@ -31,6 +32,7 @@ const KlaverjasMain = {
         oldCards.forEach(c => c.remove());
 
         this.playingTeam = null;
+        this.isFirstTrick = true; // Reset de vlag voor de nieuwe ronde
         this.updateMyHand();
         this.startBiddingPhase();
     },
@@ -139,57 +141,156 @@ const KlaverjasMain = {
         }
     },
 
-    computerMove: function(playerIndex) {
-        const hand = KJCore.hands[playerIndex];
-        const validCards = [];
-        hand.forEach((card, index) => {
-            if (KJCore.isValidMove(card, playerIndex)) validCards.push({ card: card, index: index });
-        });
+    /**
+ * VERBETERDE COMPUTER LOGICA
+ * De computer kijkt nu naar de kaarten op tafel om een betere keuze te maken.
+ */
+computerMove: function(playerIndex) {
+    const hand = KJCore.hands[playerIndex];
+    const validCards = [];
+    
+    // 1. Verzamel alle geldige zetten
+    hand.forEach((card, index) => {
+        if (KJCore.isValidMove(card, playerIndex)) {
+            validCards.push({ card: card, index: index });
+        }
+    });
 
-        if (validCards.length === 0) return;
+    if (validCards.length === 0) return;
 
-        validCards.sort((a, b) => {
-            const getVal = (c) => (c.suit === KJCore.trumpSuit) ? KJConfig.VALUES_TRUMP[c.rank].points : KJConfig.VALUES_NORMAL[c.rank].points;
-            return getVal(a.card) - getVal(b.card);
-        });
+    // Helper: Bereken de waarde/sterkte van een kaart in de huidige context
+    const getPower = (c) => {
+        if (c.suit === KJCore.trumpSuit) return 100 + KJConfig.VALUES_TRUMP[c.rank].strength;
+        if (KJCore.currentTrick.length > 0 && c.suit === KJCore.currentTrick[0].card.suit) {
+            return KJConfig.VALUES_NORMAL[c.rank].strength;
+        }
+        return 0;
+    };
 
-        const chosenMove = validCards[0];
-        KJUI.playCardAnimation(chosenMove.card, playerIndex);
-        const result = KJCore.playCard(chosenMove.index);
+    let chosenMove = validCards[0]; // Default: eerste geldige kaart
+
+    if (KJCore.currentTrick.length > 0) {
+        const currentWinner = KJCore.getTrickWinner(KJCore.currentTrick);
+        const partnerIndex = (playerIndex + 2) % 4;
+        const opponentWins = (currentWinner.playerIndex !== partnerIndex);
+        
+        // Huidige hoogste sterkte op tafel
+        const leadCard = KJCore.currentTrick[0].card;
+        const highestPowerOnTable = getPower(currentWinner.card);
+
+        if (opponentWins) {
+            // STRATEGIE: Probeer de slag te winnen van de tegenstander
+            const winningCards = validCards.filter(move => getPower(move.card) > highestPowerOnTable);
+            if (winningCards.length > 0) {
+                // Pak de goedkoopste kaart die toch wint
+                winningCards.sort((a, b) => getPower(a.card) - getPower(b.card));
+                chosenMove = winningCards[0];
+            } else {
+                // Kan niet winnen: gooi de laagste kaart (kleintje bijgooien)
+                validCards.sort((a, b) => getPower(a.card) - getPower(b.card));
+                chosenMove = validCards[0];
+            }
+        } else {
+            // STRATEGIE: Maat wint!
+            // Als maat wint, proberen we punten bij te smeren (Aas of 10) 
+            // maar alleen als het geen troef is die we verspillen.
+            const highPoints = validCards.filter(move => 
+                move.card.suit !== KJCore.trumpSuit && 
+                (move.card.rank === 'A' || move.card.rank === '10')
+            );
+            
+            if (highPoints.length > 0) {
+                chosenMove = highPoints[0];
+            } else {
+                // Gooi een zo laag mogelijke kaart
+                validCards.sort((a, b) => getPower(a.card) - getPower(b.card));
+                chosenMove = validCards[0];
+            }
+        }
+    } else {
+        // AI moet de slag openen (is eerste speler)
+        // Strategie: Speel een Aas van een niet-troef kleur, of een kleine troef
+        const aces = validCards.filter(m => m.card.rank === 'A' && m.card.suit !== KJCore.trumpSuit);
+        if (aces.length > 0) {
+            chosenMove = aces[0];
+        } else {
+            // Anders gewoon de laagste kaart
+            validCards.sort((a, b) => getPower(a.card) - getPower(b.card));
+            chosenMove = validCards[0];
+        }
+    }
+
+    // Voer de zet uit
+KJUI.playCardAnimation(chosenMove.card, playerIndex);
+    const result = KJCore.playCard(chosenMove.index);
+    
+    // NIEUW: Wacht 600ms (duur van de animatie) voordat we de beurt doorgeven
+    // Hierdoor zie je de kaart eerst rustig landen voordat "Jouw beurt" verschijnt.
+    setTimeout(() => {
         this.handleTurnResult(result);
-    },
+    }, 600); 
+},
     
     handleTurnResult: function(result) {
-        if (result === 'TRICK_COMPLETE') {
-            const winner = KJCore.getTrickWinner(KJCore.currentTrick);
-            const isLastTrick = (KJCore.hands[0].length === 0);
+    if (result === 'TRICK_COMPLETE') {
+        const winner = KJCore.getTrickWinner(KJCore.currentTrick);
+        const isLastTrick = (KJCore.hands[0].length === 0);
+        KJCore.lastTrick = [...KJCore.currentTrick]; 
+
+        // Stap 1: Wacht even zodat de speler de laatste kaart van de slag ziet
+        setTimeout(() => {
+            let points = KJCore.calculateScore(KJCore.currentTrick, isLastTrick);
+            let roemSlag = KJCore.calculateRoem(KJCore.currentTrick);
+            let roemHand = 0;
+
+            if (this.isFirstTrick) {
+                for (let i = 0; i < 4; i++) {
+                    roemHand += KJCore.checkHandRoem(i);
+                }
+                this.isFirstTrick = false; 
+            }
+
+            let totaalRoem = roemSlag + roemHand;
             
-            // Sla de slag op voordat we de tafel leegmaken
-            KJCore.lastTrick = [...KJCore.currentTrick]; 
+            // Toon ROEM of wie de slag wint
+            if (totaalRoem > 0) {
+                KJUI.showMessage(`ROEM! +${totaalRoem}`, 1500);
+            } else {
+                KJUI.showMessage(`Speler ${winner.playerIndex} pakt de slag`, 1000);
+            }
 
+            // Punten bijschrijven
+            KJCore.tricksWon[winner.playerIndex]++;
+            if (winner.playerIndex === 0 || winner.playerIndex === 2) {
+                KJCore.points.us += (points + totaalRoem);
+            } else {
+                KJCore.points.them += (points + totaalRoem);
+            }
+            KJUI.updateScore(KJCore.points);
+
+            // Stap 2: Maak de tafel pas na de melding leeg
             setTimeout(() => {
-                let points = KJCore.calculateScore(KJCore.currentTrick, isLastTrick);
-                let roem = KJCore.calculateRoem(KJCore.currentTrick);
-                
-                if (roem > 0) KJUI.showMessage(`ROEM! +${roem}`, 2000);
-                else KJUI.showMessage(`Speler ${winner.playerIndex} pakt hem`, 1000);
-
-                KJCore.tricksWon[winner.playerIndex]++;
-                if (winner.playerIndex === 0 || winner.playerIndex === 2) KJCore.points.us += (points + roem);
-                else KJCore.points.them += (points + roem);
-                
-                KJUI.updateScore(KJCore.points);
-                KJCore.currentTrick = [];
                 KJUI.clearTableAnimated(winner.playerIndex);
                 
-                KJCore.turnIndex = winner.playerIndex;
-                if (isLastTrick) this.finalizeRound();
-                else this.nextTurn();
-            }, 1200); 
-        } else {
-            this.nextTurn();
-        }
-    },
+                // Stap 3: Pas NA de animatie (0.6s) de beurt doorgeven naar de volgende slag
+                setTimeout(() => {
+                    KJCore.currentTrick = [];
+                    KJCore.turnIndex = winner.playerIndex;
+                    
+                    if (isLastTrick) {
+                        this.finalizeRound();
+                    } else {
+                        this.nextTurn();
+                    }
+                }, 600); // 600ms is net iets langer dan de clear-animatie
+            }, 1000);
+
+        }, 800); 
+    } else {
+        // Geen volledige slag? Gewoon door naar de volgende speler
+        this.nextTurn();
+    }
+},
 
     finalizeRound: function() {
         const result = KJCore.resolveRound(this.playingTeam);
@@ -198,19 +299,13 @@ const KlaverjasMain = {
             const fullMsg = `${msgTitle}\nWij: ${result.roundScore.us} - Zij: ${result.roundScore.them}\nTotaal: Wij ${result.totalScore.us} - Zij ${result.totalScore.them}`;
             
             if (confirm(fullMsg + "\n\nVolgende ronde?")) {
-                KJCore.reDeal();
-                KJUI.updateScore({ us: 0, them: 0 });
-                this.updateMyHand();
-                this.startBiddingPhase();
+                this.startGame(); // Gebruik startGame voor een schone reset
             }
         }, 1500);
     },
 
     updateMyHand: function() { KJUI.renderHand(KJCore.hands[0]); },
 
-    /**
-     * NIEUW: Koppeling met de UI voor de vorige slag
-     */
     toggleLastTrick: function() {
         if (KJCore.lastTrick.length === 0) {
             KJUI.showMessage("Nog geen vorige slag!", 1500);
@@ -229,8 +324,6 @@ document.addEventListener('DOMContentLoaded', () => {
     bind('btn-rules', () => alert("Regels: Verplicht bekennen. Overtroeven verplicht als tegenstander wint."));
     bind('btn-restart', () => { if(confirm("Opnieuw beginnen?")) KlaverjasMain.startGame(); });
     bind('btn-pass', () => KlaverjasMain.pass());
-    
-    // De knop voor de vorige slag activeren!
     bind('btn-last-trick', () => KlaverjasMain.toggleLastTrick());
 
     ['h','d','s','c'].forEach(s => bind('btn-trump-'+s, () => KlaverjasMain.chooseTrump(s)));
