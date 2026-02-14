@@ -1,0 +1,234 @@
+/**
+ * KLAVERJAS CORE (VERSIE 2.2 - MET OPGELOSTE BUGS)
+ */
+
+const KJCore = {
+    // SPEL STATUS
+    deck: [],             
+    hands: [[],[],[],[]], 
+    currentTrick: [],     
+    lastTrick: [],        
+    trumpSuit: null,      
+    turnIndex: 0,         
+    dealerIndex: 3,       
+    
+    // PUNTEN STATUS
+    points: { us: 0, them: 0 },      
+    matchPoints: { us: 0, them: 0 }, 
+    tricksWon: [0, 0, 0, 0],         
+
+    init: function() {
+        this.deck = KJConfig.createDeck(); //
+        this.shuffle(this.deck);
+        this.deal();
+        
+        this.currentTrick = [];
+        this.lastTrick = [];
+        this.points = { us: 0, them: 0 }; 
+        this.tricksWon = [0, 0, 0, 0]; 
+        this.trumpSuit = null;
+        
+        this.turnIndex = (this.dealerIndex + 1) % 4; 
+    },
+
+    reDeal: function() {
+        this.dealerIndex = (this.dealerIndex + 1) % 4;
+        this.init();
+    },
+
+    shuffle: function(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    },
+
+    deal: function() {
+        this.hands = [[], [], [], []];
+        let p = (this.dealerIndex + 1) % 4; 
+        for (let i = 0; i < this.deck.length; i++) {
+            this.hands[p].push(this.deck[i]);
+            p = (p + 1) % 4; 
+        }
+        this.hands.forEach(hand => this.sortHand(hand));
+    },
+
+    sortHand: function(hand) {
+        const suitOrder = { 'h': 0, 'd': 1, 's': 2, 'c': 3 };
+        hand.sort((a, b) => {
+            if (suitOrder[a.suit] !== suitOrder[b.suit]) {
+                return suitOrder[a.suit] - suitOrder[b.suit];
+            }
+            return KJConfig.RANKS.indexOf(a.rank) - KJConfig.RANKS.indexOf(b.rank);
+        });
+    },
+
+    /**
+     * CONTROLEERT OF EEN ZET GELDIG IS
+     * Verbetering v2.2: Overtroef-logica toegevoegd
+     */
+    isValidMove: function(card, playerIndex) {
+        if (playerIndex !== this.turnIndex) return false;
+        if (this.currentTrick.length === 0) return true;
+
+        const hand = this.hands[playerIndex];
+        const requestedSuit = this.currentTrick[0].card.suit; 
+
+        // 1. Kleur bekennen is altijd verplicht
+        const hasRequested = hand.some(c => c.suit === requestedSuit);
+        if (hasRequested) {
+            return card.suit === requestedSuit;
+        }
+
+        // 2. Kan niet bekennen? Dan troefregels toepassen
+        const hasTrump = hand.some(c => c.suit === this.trumpSuit);
+        const currentWinner = this.getTrickWinner(this.currentTrick);
+        const partnerIndex = (playerIndex + 2) % 4;
+        const partnerHasSlag = (currentWinner.playerIndex === partnerIndex);
+
+        if (hasTrump) {
+            // Zoek de hoogste troef op tafel
+            let highestTrumpStrength = -1;
+            this.currentTrick.forEach(p => {
+                if (p.card.suit === this.trumpSuit) {
+                    const str = KJConfig.VALUES_TRUMP[p.card.rank].strength;
+                    if (str > highestTrumpStrength) highestTrumpStrength = str;
+                }
+            });
+
+            // Als partner de slag NIET heeft, moet je troeven (en overtroeven)
+            if (!partnerHasSlag) {
+                if (card.suit !== this.trumpSuit) return false; 
+
+                // Check of je hoger KUNT dan wat er op tafel ligt
+                const canOverTrump = hand.some(c => 
+                    c.suit === this.trumpSuit && 
+                    KJConfig.VALUES_TRUMP[c.rank].strength > highestTrumpStrength
+                );
+
+                if (canOverTrump) {
+                    return KJConfig.VALUES_TRUMP[card.rank].strength > highestTrumpStrength;
+                }
+            }
+        }
+
+        return true;
+    },
+
+    playCard: function(cardIndex) {
+        const player = this.turnIndex;
+        const card = this.hands[player][cardIndex];
+
+        this.currentTrick.push({ playerIndex: player, card: card });
+        this.hands[player].splice(cardIndex, 1);
+        this.turnIndex = (this.turnIndex + 1) % 4;
+
+        if (this.currentTrick.length === 4) return 'TRICK_COMPLETE'; 
+        return 'NEXT_PLAYER';
+    },
+
+    getTrickWinner: function(trick) {
+        let winner = trick[0]; 
+        const askedSuit = trick[0].card.suit;
+
+        for (let i = 1; i < trick.length; i++) {
+            const challenger = trick[i];
+            const getStrength = (c) => {
+                if (c.suit === this.trumpSuit) return 100 + KJConfig.VALUES_TRUMP[c.rank].strength;
+                if (c.suit === askedSuit) return KJConfig.VALUES_NORMAL[c.rank].strength;
+                return 0; 
+            };
+
+            if (getStrength(challenger.card) > getStrength(winner.card)) {
+                winner = challenger;
+            }
+        }
+        return winner;
+    },
+
+    calculateScore: function(trick, isLastTrick = false) {
+        let points = 0;
+        trick.forEach(play => {
+            const c = play.card;
+            if (c.suit === this.trumpSuit) {
+                points += KJConfig.VALUES_TRUMP[c.rank].points;
+            } else {
+                points += KJConfig.VALUES_NORMAL[c.rank].points;
+            }
+        });
+        if (isLastTrick) points += 10;
+        return points;
+    },
+
+    calculateRoem: function(trick) {
+        let roemPoints = 0;
+        const cards = trick.map(p => p.card);
+
+        // 1. STUK CHECK
+        const hasTrumpKing = cards.some(c => c.rank === 'K' && c.suit === this.trumpSuit);
+        const hasTrumpQueen = cards.some(c => c.rank === 'Q' && c.suit === this.trumpSuit);
+        if (hasTrumpKing && hasTrumpQueen) roemPoints += 20;
+
+        // 2. CARRÉ
+        const firstRank = cards[0].rank;
+        const isCarre = cards.every(c => c.rank === firstRank);
+        if (isCarre) return roemPoints + 100;
+
+        // 3. REEKSEN
+        const suits = {};
+        cards.forEach(c => {
+            if (!suits[c.suit]) suits[c.suit] = [];
+            suits[c.suit].push(c);
+        });
+
+        Object.values(suits).forEach(suitCards => {
+            if (suitCards.length >= 3) {
+                suitCards.sort((a, b) => KJConfig.RANKS.indexOf(a.rank) - KJConfig.RANKS.indexOf(b.rank));
+                let consecutive = 1; 
+                let maxConsecutive = 1;
+                for (let i = 0; i < suitCards.length - 1; i++) {
+                    const idxCurrent = KJConfig.RANKS.indexOf(suitCards[i].rank);
+                    const idxNext = KJConfig.RANKS.indexOf(suitCards[i+1].rank);
+                    if (idxNext === idxCurrent + 1) consecutive++;
+                    else consecutive = 1;
+                    if (consecutive > maxConsecutive) maxConsecutive = consecutive;
+                }
+                if (maxConsecutive === 3) roemPoints += 20;
+                if (maxConsecutive === 4) roemPoints += 50;
+            }
+        });
+
+        return roemPoints;
+    },
+
+    resolveRound: function(playingTeam) {
+        const scorePlaying = (playingTeam === 'us') ? this.points.us : this.points.them;
+        const scoreDefending = (playingTeam === 'us') ? this.points.them : this.points.us;
+        
+        let resultType = 'NORMAL';
+
+        if (this.tricksWon[0] + this.tricksWon[2] === 8) {
+            this.points.us += 100;
+            resultType = 'PIT_US';
+        } else if (this.tricksWon[1] + this.tricksWon[3] === 8) {
+            this.points.them += 100;
+            resultType = 'PIT_THEM';
+        }
+
+        if (scorePlaying <= scoreDefending && !resultType.includes('PIT')) {
+            if (playingTeam === 'us') {
+                this.points.them += this.points.us;
+                this.points.us = 0;
+            } else {
+                this.points.us += this.points.them;
+                this.points.them = 0;
+            }
+            resultType = 'NAT';
+        }
+
+        this.matchPoints.us += this.points.us;
+        this.matchPoints.them += this.points.them;
+
+        return { type: resultType, roundScore: this.points, totalScore: this.matchPoints };
+    }
+};

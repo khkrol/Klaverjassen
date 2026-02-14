@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lumina Klaverjas 2.1</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/game.css">
+
+    <script src="js/klaverjas-config.js" defer></script>
+    <script src="js/klaverjas-core.js" defer></script>
+    <script src="js/klaverjas-ui.js" defer></script>
+    <script src="js/klaverjas-main.js" defer></script>
+</head>
+<body>
+
+<div class="app-background">
+    <div class="glass-container">
+        
+        <div id="main-menu" class="screen-panel">
+            <div class="logo-area">
+                <h1>Lumina<br><span class="highlight">Klaverjas</span></h1>
+                <p class="subtitle">Smart Edition v2.1</p>
+            </div>
+            <div class="menu-buttons">
+                <button id="btn-start-game" class="btn-primary">START SPEL</button>
+                <button id="btn-rules" class="btn-secondary">SPELREGELS</button>
+            </div>
+        </div>
+
+        <div id="game-view" class="game-panel hidden">
+            
+            <div class="top-bar">
+                <div class="score-pill us">
+                    <span class="label">WIJ</span>
+                    <span id="score-us" class="value">0</span>
+                </div>
+                
+                <div class="trump-display">
+                    <span class="label">TROEF</span>
+                    <div id="trump-indicator" class="trump-icon">?</div>
+                </div>
+
+                <div class="score-pill them">
+                    <span class="label">ZIJ</span>
+                    <span id="score-them" class="value">0</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button class="icon-btn-small" id="btn-last-trick" title="Vorige slag" style="font-size:1.2em;">👁️</button>
+                    <button class="icon-btn-small" id="btn-restart" title="Reset">↻</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="klaverjas-table" id="game-table">
+                    <div id="game-message" class="toast hidden">Melding</div>
+                    <div class="player p-top" id="player-wrapper-2"><div class="avatar" id="avatar-2">M</div><span class="p-name">Maat</span></div>
+                    <div class="player p-left" id="player-wrapper-1"><div class="avatar" id="avatar-1">L</div><span class="p-name">Links</span></div>
+                    <div class="player p-right" id="player-wrapper-3"><div class="avatar" id="avatar-3">R</div><span class="p-name">Rechts</span></div>
+                    <div class="player p-bottom" id="player-wrapper-0"><div class="avatar" id="avatar-0">IK</div><span class="p-name">Jij</span></div>
+                </div>
+            </div>
+
+            <div class="bottom-section">
+                <div id="trump-selection" class="action-overlay hidden">
+                    <span class="action-title">Kies Troef</span>
+                    <div class="trump-grid">
+                        <button id="btn-trump-h" class="suit-btn h">♥</button>
+                        <button id="btn-trump-d" class="suit-btn d">♦</button>
+                        <button id="btn-trump-s" class="suit-btn s">♠</button>
+                        <button id="btn-trump-c" class="suit-btn c">♣</button>
+                    </div>
+                    <button id="btn-pass" class="btn-text">PAS</button>
+                </div>
+
+                <div class="player-hand-wrapper">
+                    <div class="player-hand" id="player-hand-container"></div>
+                </div>
+            </div>
+
+            <div id="last-trick-overlay" class="overlay-full hidden">
+                <div class="last-trick-container">
+                    <h3 style="margin-bottom:15px;">Vorige Slag</h3>
+                    <div class="last-trick-cards" id="last-trick-cards" style="display:flex; gap:10px; pointer-events:none;"></div>
+                    <p style="margin-top:20px; font-size:0.8em; color:#ccc;">(Klik om te sluiten)</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
