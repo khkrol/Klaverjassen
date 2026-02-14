@@ -10,8 +10,10 @@ const ASSETS = [
   './js/klaverjas-main.js',
   './js/klaverjas-ui.js',
   './js/klaverjas-config.js',
-  './manifest.json'
-];
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
+  ];
 
 // 1. Installeren: Cache de basisbestanden, maar forceer direct de nieuwe worker
 self.addEventListener('install', (e) => {
