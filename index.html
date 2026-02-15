@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#3D7C3B">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Lumina Klaverjas 2.1</title>
     
@@ -17,9 +17,17 @@
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/game.css">
 
+    <script type="module">
+        import { db } from './js/firebase-config.js';
+        window.DB = db; 
+        console.log("Firebase Database is beschikbaar als window.DB");
+    </script>
     <script src="js/klaverjas-config.js" defer></script>
     <script src="js/klaverjas-core.js" defer></script>
     <script src="js/klaverjas-ui.js" defer></script>
+    
+    <script type="module" src="js/leaderboard-service.js"></script>
+    
     <script src="js/klaverjas-main.js" defer></script>
 
     <script>
@@ -39,13 +47,24 @@
         
         <div id="main-menu" class="screen-panel">
             <div class="logo-area">
-                <h1>Lumina<br><span class="highlight">Klaverjas</span></h1>
+                <h1>Klaas<br><span class="highlight">Klaverjas</span></h1>
                 <p class="subtitle">Smart Edition v2.1</p>
             </div>
             <div class="menu-buttons">
                 <button id="btn-start-game" class="btn-primary">START SPEL</button>
+                <button id="btn-topscores" class="btn-primary" style="background: linear-gradient(to bottom, #d4af37, #aa8c2c); border-color:#8a6e1c;">🏆 TOPSCORES</button>
                 <button id="btn-rules" class="btn-secondary">SPELREGELS</button>
             </div>
+        </div>
+
+        <div id="leaderboard-view" class="screen-panel hidden">
+            <h2 style="color:var(--accent-gold); text-shadow:2px 2px 0 #000; margin-bottom:10px;">WEEK TOP 10</h2>
+            <div class="leaderboard-container">
+                <ul id="highscore-list" class="hs-list">
+                    <li>Laden...</li>
+                </ul>
+            </div>
+            <button id="btn-back-menu" class="btn-secondary" style="margin-top:20px;">TERUG</button>
         </div>
 
         <div id="game-view" class="game-panel hidden">
@@ -66,9 +85,13 @@
                     <span id="score-them" class="value">0</span>
                 </div>
                 
-                <div style="display:flex; gap:10px;">
+                <div style="display:flex; gap:10px; align-items:center;">
                     <button class="icon-btn-small" id="btn-last-trick" title="Vorige slag">👁️</button>
                     <button class="icon-btn-small" id="btn-restart" title="Reset">↻</button>
+                    
+                    <div class="round-indicator">
+                        Ronde <span id="round-current">1</span>/16
+                    </div>
                 </div>
             </div>
 
@@ -104,6 +127,31 @@
                     <h3 style="margin-bottom:15px;">Vorige Slag</h3>
                     <div class="last-trick-cards" id="last-trick-cards" style="display:flex; gap:10px; pointer-events:none;"></div>
                     <p style="margin-top:20px; font-size:0.8em; color:#ccc;">(Klik om te sluiten)</p>
+                </div>
+            </div>
+
+            <div id="game-over-overlay" class="overlay-full hidden">
+                <div class="game-over-container">
+                    <h2 id="go-title">BOOMPJE COMPLEET!</h2>
+                    
+                    <div class="go-scores">
+                        <div class="go-score-box">
+                            <span class="label">WIJ</span>
+                            <span id="go-score-us" class="value-big">0</span>
+                        </div>
+                        <div class="go-score-box">
+                            <span class="label">ZIJ</span>
+                            <span id="go-score-them" class="value-big">0</span>
+                        </div>
+                    </div>
+
+                    <div id="go-input-section">
+                        <p id="go-message">Gefeliciteerd! Sla je score op.</p>
+                        <input type="text" id="player-name-input" placeholder="Jouw Naam" maxlength="12">
+                        <button id="btn-save-score" class="btn-primary" style="margin-top:10px;">SCORE OPSLAAN</button>
+                    </div>
+                    
+                    <button id="btn-to-menu" class="btn-secondary">TERUG NAAR MENU</button>
                 </div>
             </div>
 

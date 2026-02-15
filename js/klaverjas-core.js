@@ -10,8 +10,11 @@ const KJCore = {
     lastTrick: [],        
     trumpSuit: null,      
     turnIndex: 0,         
-    dealerIndex: 3,       
+    dealerIndex: 3,
     
+    // NIEUW: Ronde teller
+    currentRound: 1,      
+
     // PUNTEN STATUS
     points: { us: 0, them: 0 },      
     matchPoints: { us: 0, them: 0 }, 
@@ -28,6 +31,12 @@ const KJCore = {
         this.tricksWon = [0, 0, 0, 0]; 
         this.trumpSuit = null;
         
+        // NIEUW: Bij start van het spel, begin bij ronde 1 (tenzij het een herstart is in een boompje)
+        // We resetten currentRound alleen als matchPoints ook 0 is (volledig nieuw spel)
+        if (this.matchPoints.us === 0 && this.matchPoints.them === 0) {
+            this.currentRound = 1;
+        }
+
         this.turnIndex = (this.dealerIndex + 1) % 4; 
     },
 
@@ -229,20 +238,25 @@ const KJCore = {
     },
 
     resolveRound: function(playingTeam) {
-        const scorePlaying = (playingTeam === 'us') ? this.points.us : this.points.them;
-        const scoreDefending = (playingTeam === 'us') ? this.points.them : this.points.us;
-        
+        // 1. Punten tellen
+        let scorePlaying = (playingTeam === 'us') ? this.points.us : this.points.them;
+        let scoreDefending = (playingTeam === 'us') ? this.points.them : this.points.us;
         let resultType = 'NORMAL';
 
-        if (this.tricksWon[0] + this.tricksWon[2] === 8) {
-            this.points.us += 100;
-            resultType = 'PIT_US';
-        } else if (this.tricksWon[1] + this.tricksWon[3] === 8) {
-            this.points.them += 100;
-            resultType = 'PIT_THEM';
+        // 2. Check voor PIT (Alle slagen, dus verdediging heeft 0 punten)
+        // Let op: Bij pit krijg je 100 punten extra
+        if (scoreDefending === 0) {
+            scorePlaying += 100; 
+            if (playingTeam === 'us') this.points.us += 100;
+            else this.points.them += 100;
+            resultType = 'PIT';
         }
 
-        if (scorePlaying <= scoreDefending && !resultType.includes('PIT')) {
+        // 3. Check voor NAT (Niet gewonnen door spelend team)
+        // Als je speelt moet je meer punten hebben dan de tegenpartij.
+        // Bij gelijkspel of verlies ben je nat.
+        if (scorePlaying <= scoreDefending && resultType !== 'PIT') {
+            // Nat! Alle punten gaan naar de tegenpartij
             if (playingTeam === 'us') {
                 this.points.them += this.points.us;
                 this.points.us = 0;
@@ -253,9 +267,19 @@ const KJCore = {
             resultType = 'NAT';
         }
 
+        // 4. Totaalscore bijwerken (Boompje score)
         this.matchPoints.us += this.points.us;
         this.matchPoints.them += this.points.them;
+        
+        // 5. Ronde teller ophogen
+        this.currentRound++;
 
-        return { type: resultType, roundScore: this.points, totalScore: this.matchPoints };
+        // 6. Resultaat teruggeven
+        return { 
+            type: resultType, 
+            roundScore: { ...this.points }, 
+            totalScore: { ...this.matchPoints },
+            nextRoundNumber: this.currentRound 
+        };
     }
 };

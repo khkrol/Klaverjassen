@@ -118,37 +118,37 @@ const KJUI = {
         animCard.classList.add(endPositions[playerIndex]);
     },
 
-/**
- * Verbetert de animatie: kaarten vliegen naar de winnaar van de slag
- */
-clearTableAnimated: function(winnerIndex) {
-    const cards = document.querySelectorAll('.table-anim-card');
-    
-    // Bepaal de doelpositie op basis van de winnaar (overeenkomstig met player CSS)
-    const targets = [
-        { bottom: '-100px', left: '50%' },  // Jij (Player 0)
-        { top: '50%', left: '-100px' },     // Links (Player 1)
-        { top: '-100px', left: '50%' },     // Maat (Player 2)
-        { top: '50%', left: '110%' }        // Rechts (Player 3)
-    ];
+    /**
+     * Verbetert de animatie: kaarten vliegen naar de winnaar van de slag
+     */
+    clearTableAnimated: function(winnerIndex) {
+        const cards = document.querySelectorAll('.table-anim-card');
+        
+        // Bepaal de doelpositie op basis van de winnaar (overeenkomstig met player CSS)
+        const targets = [
+            { bottom: '-100px', left: '50%' },  // Jij (Player 0)
+            { top: '50%', left: '-100px' },     // Links (Player 1)
+            { top: '-100px', left: '50%' },     // Maat (Player 2)
+            { top: '50%', left: '110%' }        // Rechts (Player 3)
+        ];
 
-    const target = targets[winnerIndex];
+        const target = targets[winnerIndex];
 
-    cards.forEach(card => {
-        // Stap 1: Beweeg naar de winnende speler
-        card.style.transition = 'all 0.5s ease-in';
-        card.style.top = target.top || 'auto';
-        card.style.bottom = target.bottom || 'auto';
-        card.style.left = target.left || 'auto';
-        card.style.transform = 'scale(0.2) rotate(15deg)';
-        card.style.opacity = '0';
-    });
+        cards.forEach(card => {
+            // Stap 1: Beweeg naar de winnende speler
+            card.style.transition = 'all 0.5s ease-in';
+            card.style.top = target.top || 'auto';
+            card.style.bottom = target.bottom || 'auto';
+            card.style.left = target.left || 'auto';
+            card.style.transform = 'scale(0.2) rotate(15deg)';
+            card.style.opacity = '0';
+        });
 
-    // Stap 2: Verwijder de elementen uit de DOM na de animatie
-    setTimeout(() => {
-        cards.forEach(c => c.remove());
-    }, 550);
-},
+        // Stap 2: Verwijder de elementen uit de DOM na de animatie
+        setTimeout(() => {
+            cards.forEach(c => c.remove());
+        }, 550);
+    },
 
     /**
      * Toont de vorige slag in de overlay
@@ -170,5 +170,35 @@ clearTableAnimated: function(winnerIndex) {
         
         // Sluit overlay bij klik
         overlay.onclick = () => overlay.classList.add('hidden');
+    },
+
+    // NIEUWE FUNCTIES FASE 3
+    updateRound: function(round) {
+        const el = document.getElementById('round-current');
+        if(el) el.innerText = round;
+    },
+
+    showGameOverScreen: function(totalScore) {
+        const overlay = document.getElementById('game-over-overlay');
+        const scoreUs = document.getElementById('go-score-us');
+        const scoreThem = document.getElementById('go-score-them');
+        const title = document.getElementById('go-title');
+        const msg = document.getElementById('go-message');
+
+        // Vul data in
+        scoreUs.innerText = totalScore.us;
+        scoreThem.innerText = totalScore.them;
+        
+        if (totalScore.us > totalScore.them) {
+            title.innerText = "GEWONNEN! 🏆";
+            title.style.color = "var(--accent-gold)";
+            msg.innerText = "Wat een prestatie! Sla je score op.";
+        } else {
+            title.innerText = "VERLOREN...";
+            title.style.color = "#ccc";
+            msg.innerText = "Helaas! Volgende keer beter.";
+        }
+
+        overlay.classList.remove('hidden');
     }
 };

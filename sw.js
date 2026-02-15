@@ -1,5 +1,5 @@
-// Verander dit nummer ELKE KEER als je een update doet aan je site (bijv. v1.1, v1.2)
-const CACHE_NAME = 'klaverjas-v2-network-first';
+// Versie omhoog naar v3
+const CACHE_NAME = 'lumina-klaverjas-v3';
 
 const ASSETS = [
   './',
@@ -10,22 +10,25 @@ const ASSETS = [
   './js/klaverjas-main.js',
   './js/klaverjas-ui.js',
   './js/klaverjas-config.js',
+  './js/firebase-config.js',      // NIEUW: Toegevoegd
+  './js/leaderboard-service.js',  // NIEUW: Toegevoegd
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
-  ];
+  './icons/icon-192.png',
+  './icons/icon-512.png'  
+];
 
-// 1. Installeren: Cache de basisbestanden, maar forceer direct de nieuwe worker
+// 1. Installeren
 self.addEventListener('install', (e) => {
-  self.skipWaiting(); // Forceer dat deze nieuwe versie direct actief wordt
+  self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
+      console.log('Service Worker: Caching files');
       return cache.addAll(ASSETS);
     })
   );
 });
 
-// 2. Activeren: Verwijder oude caches (belangrijk om ruimte te maken en conflicten te voorkomen)
+// 2. Activeren & Oude rommel opruimen
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
@@ -37,17 +40,17 @@ self.addEventListener('activate', (e) => {
       }));
     })
   );
-  return self.clients.claim(); // Neem direct controle over alle tabbladen
+  return self.clients.claim();
 });
 
-// 3. Fetch: "Network First" Strategie
-// Probeer eerst het internet. Lukt dat? Update de cache en toon de pagina.
-// Lukt dat niet (offline)? Toon de versie uit de cache.
+// 3. Fetch (Network first, fallback cache)
 self.addEventListener('fetch', (e) => {
+  // Alleen http/https verzoeken cachen (geen chrome-extensies etc)
+  if (!e.request.url.startsWith('http')) return;
+
   e.respondWith(
     fetch(e.request)
       .then((res) => {
-        // Maak een kopie van het antwoord om in de cache te stoppen
         const resClone = res.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(e.request, resClone);
@@ -55,7 +58,6 @@ self.addEventListener('fetch', (e) => {
         return res;
       })
       .catch(() => {
-        // Geen internet? Pak de cache.
         return caches.match(e.request);
       })
   );
