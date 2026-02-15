@@ -1,5 +1,5 @@
 /**
- * KLAVERJAS UI (Lumina Versie 2.2 - Met Waaier Effect)
+ * KLAVERJAS UI (Klaas Klaverjas Versie 1
  */
 const KJUI = {
     el: {},
@@ -29,26 +29,42 @@ const KJUI = {
 
     /**
      * Teken de kaarten in de hand van de speler
-     * VERBETERING: Kaarten worden nu in een waaier (arc) getoond
+     * AANGEPAST: Voegt 'card-disabled' toe aan ongeldige kaarten
      */
     renderHand: function(hand) {
         this.el.hand.innerHTML = ''; 
         const totalCards = hand.length;
         
+        // Check of het überhaupt de beurt van de menselijke speler (index 0) is
+        const isMyTurn = (KJCore.turnIndex === 0);
+
         hand.forEach((card, index) => {
             const wrapper = document.createElement('div');
             wrapper.className = 'hand-card'; 
             
             // Bereken de rotatie en verticale verschuiving voor het waaier-effect
             const mid = (totalCards - 1) / 2;
-            const rotate = (index - mid) * 4; // Draai de kaarten lichtjes
-            const translateY = Math.abs(index - mid) * 4; // De buitenste kaarten staan iets lager
+            const rotate = (index - mid) * 4; 
+            const translateY = Math.abs(index - mid) * 4; 
 
             wrapper.style.transform = `rotate(${rotate}deg) translateY(${translateY}px)`;
             wrapper.innerHTML = this.createCardHTML(card);
             
-            // Klik event koppelen
-            wrapper.onclick = () => KlaverjasMain.onCardClick(index);
+            // --- NIEUWE LOGICA ---
+            if (isMyTurn) {
+                // Vraag aan de Core of deze kaart mag
+                const isValid = KJCore.isValidMove(card, 0);
+                if (!isValid) {
+                    wrapper.classList.add('card-disabled');
+                } else {
+                    // Koppel klik alleen aan geldige kaarten
+                    wrapper.onclick = () => KlaverjasMain.onCardClick(index);
+                }
+            } else {
+                // Als het niet jouw beurt is, kun je nergens op klikken
+                wrapper.style.cursor = "default";
+            }
+            // ---------------------
             
             this.el.hand.appendChild(wrapper);
         });
@@ -151,7 +167,7 @@ const KJUI = {
     },
 
     /**
-     * Toont de vorige slag in de overlay
+     * Toont de vorige slag in de overlay MET spelernamen
      */
     renderLastTrick: function(trick) {
         const overlay = document.getElementById('last-trick-overlay');
@@ -160,10 +176,36 @@ const KJUI = {
         if (!overlay || !container) return;
 
         container.innerHTML = '';
+        
+        // De namen die horen bij index 0, 1, 2, 3
+        const playerNames = ['ZUID', 'WEST', 'NOORD', 'OOST'];
+
         trick.forEach(play => {
-            const cardWrapper = document.createElement('div');
-            cardWrapper.innerHTML = this.createCardHTML(play.card);
-            container.appendChild(cardWrapper.firstElementChild);
+            // 1. Maak een container voor één speler (Naam + Kaart)
+            const itemWrapper = document.createElement('div');
+            itemWrapper.className = 'last-trick-item';
+
+            // 2. Maak het naam-label
+            const nameLabel = document.createElement('span');
+            nameLabel.className = 'last-trick-label';
+            nameLabel.innerText = playerNames[play.playerIndex];
+
+            // 3. Maak de kaart (we gebruiken de bestaande helper)
+            // We maken een tijdelijke div om de HTML string om te zetten naar een element
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = this.createCardHTML(play.card);
+            const cardElement = tempDiv.firstElementChild;
+
+            // Zorg dat de kaart er netjes uitziet in de overlay (kleiner)
+            cardElement.style.position = 'relative'; // Reset positionering
+            cardElement.style.transform = 'scale(0.85)'; // Iets kleiner
+            cardElement.style.margin = '0';
+            
+            // 4. Voeg alles samen
+            itemWrapper.appendChild(nameLabel);
+            itemWrapper.appendChild(cardElement);
+            
+            container.appendChild(itemWrapper);
         });
 
         overlay.classList.remove('hidden');

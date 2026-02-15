@@ -2,11 +2,11 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#3D7C3B">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Lumina Klaverjas 2.1</title>
+    <title>Klaas Klaverjas</title>
     
     <link rel="manifest" href="manifest.json">
     
@@ -34,7 +34,7 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('Lumina Klaverjas: Service Worker actief!'))
+            .then(reg => console.log('Klaas Klaverjas: Service Worker actief!'))
             .catch(err => console.error('Service Worker fout:', err));
         });
       }
@@ -48,12 +48,13 @@
         <div id="main-menu" class="screen-panel">
             <div class="logo-area">
                 <h1>Klaas<br><span class="highlight">Klaverjas</span></h1>
-                <p class="subtitle">Smart Edition v2.1</p>
+                <p class="subtitle">Versie 15 februari 2026</p>
             </div>
             <div class="menu-buttons">
                 <button id="btn-start-game" class="btn-primary">START SPEL</button>
-                <button id="btn-topscores" class="btn-primary" style="background: linear-gradient(to bottom, #d4af37, #aa8c2c); border-color:#8a6e1c;">🏆 TOPSCORES</button>
-                <button id="btn-rules" class="btn-secondary">SPELREGELS</button>
+                <button id="btn-topscores" class="btn-primary" style="background: linear-gradient(to bottom, #d4af37, #aa8c2c); border-color:#8a6e1c;">LEIDERBORD</button>
+                <button id="btn-rules" class="btn-primary">SPELREGELS</button>
+                <button id="btn-settings" class="btn-primary">INSTELLINGEN</button>
             </div>
         </div>
 
@@ -116,6 +117,24 @@
             <button id="btn-back-rules" class="btn-secondary" style="margin-top:20px;">TERUG</button>
         </div>
 
+        <div id="settings-view" class="screen-panel hidden">
+            <h2 style="color:var(--accent-gold); text-shadow:2px 2px 0 #000; margin-bottom:20px;">INSTELLINGEN</h2>
+            
+            <div class="rules-container" style="text-align: center; display:flex; flex-direction:column; gap:20px;">
+                <p style="color:var(--text-main);">Kies hoe snel de computer speelt:</p>
+                
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <button id="spd-slow" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('slow')">🐢 RUSTIG</button>
+                    <button id="spd-normal" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('normal')">🚶 NORMAAL</button>
+                    <button id="spd-fast" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('fast')">🚀 VLOT</button>
+                </div>
+
+                <p id="current-speed-label" style="font-size:0.9em; color:var(--accent-gold); margin-top:10px;">Huidig: Normaal</p>
+            </div>
+
+            <button id="btn-back-settings" class="btn-secondary" style="margin-top:20px;">TERUG</button>
+        </div>
+
         <div id="game-view" class="game-panel hidden">
             
             <div class="top-bar">
@@ -147,10 +166,26 @@
             <div class="table-container">
                 <div class="klaverjas-table" id="game-table">
                     <div id="game-message" class="toast hidden">Melding</div>
-                    <div class="player p-top" id="player-wrapper-2"><div class="avatar" id="avatar-2">M</div><span class="p-name">Maat</span></div>
-                    <div class="player p-left" id="player-wrapper-1"><div class="avatar" id="avatar-1">L</div><span class="p-name">Links</span></div>
-                    <div class="player p-right" id="player-wrapper-3"><div class="avatar" id="avatar-3">R</div><span class="p-name">Rechts</span></div>
-                    <div class="player p-bottom" id="player-wrapper-0"><div class="avatar" id="avatar-0">IK</div><span class="p-name">Jij</span></div>
+                    
+                    <div class="player p-top" id="player-wrapper-2">
+                        <div class="avatar" id="avatar-2">N</div>
+                        <span class="p-name">Noord</span>
+                    </div>
+                    
+                    <div class="player p-left" id="player-wrapper-1">
+                        <div class="avatar" id="avatar-1">W</div>
+                        <span class="p-name">West</span>
+                    </div>
+                    
+                    <div class="player p-right" id="player-wrapper-3">
+                        <div class="avatar" id="avatar-3">O</div>
+                        <span class="p-name">Oost</span>
+                    </div>
+                    
+                    <div class="player p-bottom" id="player-wrapper-0">
+                        <div class="avatar" id="avatar-0">Z</div>
+                        <span class="p-name">Zuid</span>
+                    </div>
                 </div>
             </div>
 

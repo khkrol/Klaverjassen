@@ -9,12 +9,16 @@ const KlaverjasMain = {
     isFirstTrick: true,
 
     init: function() {
+        // Laad opgeslagen snelheid
+        const savedSpeed = localStorage.getItem('klaverjas_speed') || 'normal';
+        this.setGameSpeed(savedSpeed);
+        
         this.showMenu();
     },
 
     showMenu: function() {
         // Verberg alles behalve menu
-        ['game-view', 'leaderboard-view', 'rules-view'].forEach(id => {
+        ['game-view', 'leaderboard-view', 'rules-view', 'settings-view'].forEach(id => {
             const el = document.getElementById(id);
             if(el) el.classList.add('hidden');
         });
@@ -37,6 +41,50 @@ const KlaverjasMain = {
     showRules: function() {
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('rules-view').classList.remove('hidden');
+    },
+
+    // NIEUW: Instellingen scherm en logica
+    showSettings: function() {
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('settings-view').classList.remove('hidden');
+        this.updateSettingsUI();
+    },
+
+    setGameSpeed: function(speedType) {
+        let speedMs = 900; // Standaard
+        let label = "Normaal";
+
+        if (speedType === 'slow') { speedMs = 1500; label = "Rustig"; }
+        if (speedType === 'fast') { speedMs = 400; label = "Vlot"; }
+        if (speedType === 'normal') { speedMs = 900; label = "Normaal"; }
+
+        // Zet de snelheid in het spel
+        this.gameSpeed = speedMs;
+        
+        // Sla op in de browser (localStorage)
+        localStorage.setItem('klaverjas_speed', speedType);
+
+        // Update de knoppen als we in het menu zijn
+        this.updateSettingsUI();
+    },
+
+    updateSettingsUI: function() {
+        const savedType = localStorage.getItem('klaverjas_speed') || 'normal';
+        
+        // Reset alle knoppen
+        ['slow', 'normal', 'fast'].forEach(type => {
+            const btn = document.getElementById('spd-' + type);
+            if(btn) btn.classList.remove('btn-active');
+        });
+
+        // Activeer de juiste knop
+        const activeBtn = document.getElementById('spd-' + savedType);
+        if(activeBtn) activeBtn.classList.add('btn-active');
+
+        // Update label tekst
+        const labels = { slow: "Rustig", normal: "Normaal", fast: "Vlot" };
+        const lbl = document.getElementById('current-speed-label');
+        if(lbl) lbl.innerText = `Huidig: ${labels[savedType]}`;
     },
 
     startGame: function() {
@@ -141,6 +189,9 @@ const KlaverjasMain = {
         KJUI.updateActivePlayer(playerIndex);
 
         if (playerIndex === 0) {
+            // --- NIEUW: Ververs de hand zodat we zien wat mag ---
+            this.updateMyHand(); 
+            // ----------------------------------------------------
             KJUI.showMessage("Jouw beurt", 0);
         } else {
             setTimeout(() => this.computerMove(playerIndex), this.gameSpeed);
@@ -362,6 +413,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Spelregels scherm knoppen
     bind('btn-rules', () => KlaverjasMain.showRules());
     bind('btn-back-rules', () => KlaverjasMain.showMenu());
+    
+    // NIEUW: Instellingen knoppen
+    bind('btn-settings', () => KlaverjasMain.showSettings());
+    bind('btn-back-settings', () => KlaverjasMain.showMenu());
+    
+    bind('spd-slow', () => KlaverjasMain.setGameSpeed('slow'));
+    bind('spd-normal', () => KlaverjasMain.setGameSpeed('normal'));
+    bind('spd-fast', () => KlaverjasMain.setGameSpeed('fast'));
 
     bind('btn-restart', () => { if(confirm("Opnieuw beginnen?")) KlaverjasMain.startGame(); });
     bind('btn-pass', () => KlaverjasMain.pass());

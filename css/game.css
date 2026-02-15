@@ -326,6 +326,16 @@
     z-index: 100;
 }
 
+/* --- AANGEPAST: Ongeldige kaarten stijl (Transparant) --- */
+.card-disabled {
+    opacity: 0.5;                     /* Maakt de kaart 50% doorzichtig */
+    transform: scale(0.9) !important; /* Maakt de kaart 10% kleiner */
+    cursor: not-allowed !important;   /* Verbodsicoontje als muis */
+    filter: brightness(0.9);          /* Iets donkerder, maar WEL met kleur! */
+    pointer-events: none;             /* Zorgt dat je er niet op kunt klikken */
+    border: 1px dashed #999;          /* Optioneel: stippellijntje om aan te geven 'niet nu' */
+}
+
 /* Troef Kiezer: MIDDEN van het scherm */
 #trump-selection.action-overlay {
     position: absolute;
@@ -540,6 +550,22 @@
     font-family: var(--font-body);
 }
 
+/* --- NIEUW: Styling voor Vorige Slag met Namen --- */
+.last-trick-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px; /* Ruimte tussen naam en kaart */
+}
+
+.last-trick-label {
+    font-family: var(--font-heading);
+    font-size: 0.9em;
+    color: var(--accent-gold);
+    text-shadow: 1px 1px 2px #000;
+    letter-spacing: 1px;
+}
+
 /* --- NIEUW: Ronde Teller & Game Over --- */
 
 .round-indicator {
@@ -746,3 +772,12 @@
 }
 
 .rules-table tr:last-child td { border-bottom: none; }
+
+/* Actieve knop in instellingen */
+.btn-active {
+    background: var(--accent-gold) !important;
+    color: #3e2723 !important;
+    border-color: #fff !important;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+}
