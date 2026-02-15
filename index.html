@@ -67,6 +67,55 @@
             <button id="btn-back-menu" class="btn-secondary" style="margin-top:20px;">TERUG</button>
         </div>
 
+        <div id="rules-view" class="screen-panel hidden">
+            <h2 style="color:var(--accent-gold); text-shadow:2px 2px 0 #000; margin-bottom:10px;">SPELREGELS</h2>
+            
+            <div class="rules-container">
+                <div class="rules-content">
+                    <h3>1. Het Doel</h3>
+                    <p>Klaverjas speel je met 4 spelers in 2 teams (Noord/Zuid vs Oost/West). Het doel is om in 16 rondes (een 'boompje') meer punten te verzamelen dan de tegenstander.</p>
+
+                    <h3>2. De Kaarten</h3>
+                    <p>De rangorde en waarde van de kaarten verschilt tussen Troef en Niet-Troef:</p>
+                    <table class="rules-table">
+                        <tr>
+                            <th>Kaart</th>
+                            <th>Troef Punten</th>
+                            <th>Niet-Troef</th>
+                        </tr>
+                        <tr><td>Boer (J)</td><td><strong>20</strong> (Hoogste!)</td><td>2</td></tr>
+                        <tr><td>Negen (9)</td><td><strong>14</strong> (Nel)</td><td>0</td></tr>
+                        <tr><td>Aas (A)</td><td>11</td><td>11</td></tr>
+                        <tr><td>Tien (10)</td><td>10</td><td>10</td></tr>
+                        <tr><td>Koning (K)</td><td>4</td><td>4</td></tr>
+                        <tr><td>Vrouw (Q)</td><td>3</td><td>3</td></tr>
+                        <tr><td>8 & 7</td><td>0</td><td>0</td></tr>
+                    </table>
+
+                    <h3>3. Het Spelverloop</h3>
+                    <ul class="rules-list">
+                        <li><strong>Kleur Bekennen:</strong> Je moet altijd de gevraagde kleur bijlopen als je die hebt.</li>
+                        <li><strong>Troefplicht:</strong> Als je niet kunt bekennen, moet je troeven (als je een troef hebt).</li>
+                        <li><strong>Overtroeven:</strong> Als er al getroefd is en jij moet ook troeven, moet je een hogere troef gooien als je die hebt.</li>
+                        <li><strong>Ondertroeven:</strong> Mag alleen als je niet anders kunt (je hebt alleen lagere troeven).</li>
+                    </ul>
+
+                    <h3>4. Roem & Punten</h3>
+                    <p>Extra punten ('Roem') verdien je door combinaties in één slag:</p>
+                    <ul class="rules-list">
+                        <li><strong>Stuk (20p):</strong> Heer + Vrouw van Troef.</li>
+                        <li><strong>Drieluik (20p):</strong> 3 opeenvolgende kaarten zelfde kleur.</li>
+                        <li><strong>Vierluik (50p):</strong> 4 opeenvolgende kaarten.</li>
+                        <li><strong>Carré (100p):</strong> 4 dezelfde (bijv. 4 Azen).</li>
+                        <li><strong>Nat:</strong> Als het spelende team minder punten haalt dan de tegenstander, gaan alle punten naar de tegenstander.</li>
+                        <li><strong>Pit:</strong> Als één team alle slagen haalt (+100 extra punten).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button id="btn-back-rules" class="btn-secondary" style="margin-top:20px;">TERUG</button>
+        </div>
+
         <div id="game-view" class="game-panel hidden">
             
             <div class="top-bar">

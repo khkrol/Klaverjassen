@@ -1,5 +1,5 @@
 /**
- * KLAVERJAS MAIN (Versie 2.4 - Met Firebase Leaderboard)
+ * KLAVERJAS MAIN (Versie 2.4 - Met Firebase Leaderboard & Spelregels)
  */
 const KlaverjasMain = {
     gameSpeed: 900,      
@@ -14,7 +14,7 @@ const KlaverjasMain = {
 
     showMenu: function() {
         // Verberg alles behalve menu
-        ['game-view', 'leaderboard-view'].forEach(id => {
+        ['game-view', 'leaderboard-view', 'rules-view'].forEach(id => {
             const el = document.getElementById(id);
             if(el) el.classList.add('hidden');
         });
@@ -31,6 +31,12 @@ const KlaverjasMain = {
         } else {
             console.error("Leaderboard service nog niet geladen");
         }
+    },
+
+    // NIEUW: Functie om spelregels te tonen
+    showRules: function() {
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('rules-view').classList.remove('hidden');
     },
 
     startGame: function() {
@@ -349,11 +355,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bind('btn-start-game', () => KlaverjasMain.startGame());
     
-    // NIEUW: Koppel Topscores en Terug knop
+    // NIEUW: Koppel Topscores, Spelregels en Terug knoppen
     bind('btn-topscores', () => KlaverjasMain.showLeaderboard());
     bind('btn-back-menu', () => KlaverjasMain.showMenu());
 
-    bind('btn-rules', () => alert("Regels: Verplicht bekennen. Overtroeven verplicht als tegenstander wint."));
+    // Spelregels scherm knoppen
+    bind('btn-rules', () => KlaverjasMain.showRules());
+    bind('btn-back-rules', () => KlaverjasMain.showMenu());
+
     bind('btn-restart', () => { if(confirm("Opnieuw beginnen?")) KlaverjasMain.startGame(); });
     bind('btn-pass', () => KlaverjasMain.pass());
     bind('btn-last-trick', () => KlaverjasMain.toggleLastTrick());
