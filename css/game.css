@@ -1,5 +1,7 @@
+/* game.css - Bruine Kroeg Editie */
+
 /* =========================================
-   1. MENU & ALGEMENE PANELEN
+   1. MENU 
    ========================================= */
 
 .screen-panel {
@@ -13,24 +15,31 @@
 }
 
 .logo-area h1 {
+    font-family: var(--font-heading);
     font-size: 3.5em;
-    line-height: 1;
+    line-height: 1.1; /* Iets meer ruimte */
     margin: 0 0 10px 0;
-    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    color: var(--accent-gold);
+    /* Minder zware schaduw voor scherpere randen */
+    text-shadow: 2px 2px 0px #3e2723; 
 }
 
 .highlight {
-    background: -webkit-linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    background: none;
+    -webkit-text-fill-color: initial;
+    color: var(--accent-cream);
 }
 
 .subtitle {
     color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    font-size: 0.8em;
+    font-family: var(--font-heading);
+    letter-spacing: 2px;
+    font-size: 1em;
     margin-bottom: 20px;
+    border-top: 1px solid var(--text-muted);
+    border-bottom: 1px solid var(--text-muted);
+    padding: 5px 0;
+    display: inline-block;
 }
 
 .menu-buttons {
@@ -41,15 +50,8 @@
     gap: 15px;
 }
 
-.version-text {
-    position: absolute;
-    bottom: 20px;
-    color: rgba(255,255,255,0.2);
-    font-size: 0.7em;
-}
-
 /* =========================================
-   2. GAME VIEW (Layout)
+   2. GAME VIEW (Krijtbord Scorebalk)
    ========================================= */
 
 .game-panel {
@@ -59,15 +61,16 @@
     position: relative;
 }
 
-/* --- Scorebalk (Bovenin) --- */
 .top-bar {
-    padding: 15px 20px;
+    padding: 10px 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(5px);
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    /* Krijtbord stijl */
+    background-color: var(--bg-chalk);
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMWUzYTI5Ii8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMzNDU2NDIiLz4KPC9zdmc+');
+    border-bottom: 6px solid #5d4037;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     z-index: 100;
 }
 
@@ -75,27 +78,28 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: rgba(255,255,255,0.03);
-    padding: 5px 15px;
-    border-radius: 12px;
-    min-width: 75px;
-    border: 1px solid rgba(255,255,255,0.05);
+    /* Krijt effect */
+    border: 2px solid rgba(255,255,255,0.1);
+    padding: 5px 10px;
+    border-radius: 4px;
+    min-width: 70px;
 }
 
-.score-pill.us { border-bottom: 3px solid var(--accent-primary); }
-.score-pill.them { border-bottom: 3px solid var(--accent-secondary); }
+.score-pill.us { border-bottom: 2px solid var(--accent-gold); }
+.score-pill.them { border-bottom: 2px solid var(--accent-red); }
 
 .score-pill .label {
-    font-size: 0.6em;
-    color: var(--text-muted);
-    font-weight: 800;
-    letter-spacing: 1px;
+    font-family: 'Patrick Hand', cursive, sans-serif; /* Fallback naar sans */
+    font-size: 0.8em;
+    color: rgba(255,255,255,0.7);
 }
 
 .score-pill .value {
-    font-size: 1.4em;
+    font-family: var(--font-card); /* Gebruik het duidelijke font */
     font-weight: 700;
+    font-size: 1.8em; /* Iets groter */
     color: #fff;
+    letter-spacing: 1px;
 }
 
 .trump-display {
@@ -103,27 +107,29 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    background: rgba(0,0,0,0.2);
+    border-radius: 50%;
+    width: 50px; height: 50px;
+    justify-content: center;
+    border: 2px dashed rgba(255,255,255,0.2);
 }
 
 .trump-icon {
-    font-size: 1.8em;
-    height: 35px;
-    line-height: 35px;
-    filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
+    font-size: 1.5em;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
 }
 
 .icon-btn-small {
     background: none;
     border: none;
-    color: #94a3b8;
+    color: var(--text-muted);
     font-size: 1.5em;
     cursor: pointer;
-    transition: color 0.2s;
 }
-.icon-btn-small:hover { color: #fff; }
+.icon-btn-small:hover { color: var(--accent-gold); }
 
 /* =========================================
-   3. TAFEL & SPELERS (AANGEPAST)
+   3. TAFEL & SPELERS (HOUTEN TAFEL)
    ========================================= */
 
 .table-container {
@@ -136,22 +142,37 @@
     perspective: 1000px;
 }
 
-/* De Tafel zelf */
 .klaverjas-table {
     width: 90%;
     aspect-ratio: 1/1;
     max-height: 50vh;
     border-radius: 50%;
-    background: radial-gradient(circle at center, #334155 0%, #0f172a 85%);
-    border: 6px solid #1e293b;
+    
+    /* Houten Tafel Gradient */
+    background: radial-gradient(circle, #8d6e63 0%, #4e342e 60%, #3e2723 100%);
+    /* Houtnerf simulatie */
+    background-size: 100% 100%;
+    
+    border: 8px solid #281815; /* Donkere rand */
     box-shadow: 
-        inset 0 0 60px rgba(0,0,0,0.8),
-        0 20px 50px rgba(0,0,0,0.5),
-        0 0 0 1px rgba(255,255,255,0.1);
+        inset 0 0 80px rgba(0,0,0,0.9), /* Diepte op tafel */
+        0 30px 60px rgba(0,0,0,0.6);    /* Schaduw op vloer */
     position: relative;
 }
 
-/* --- Speler Stijl (FIX voor leesbaarheid) --- */
+/* Een kleedje op tafel (optioneel, voor sfeer) */
+.klaverjas-table::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%; height: 30%;
+    background: rgba(0,0,0,0.1);
+    border-radius: 50%;
+    filter: blur(20px);
+}
+
+/* --- Speler Stijl (Bierviltjes) --- */
 .player {
     position: absolute;
     display: flex;
@@ -163,143 +184,131 @@
 }
 
 .avatar {
-    width: 54px;
-    height: 54px;
-    /* Iets lichtere achtergrond voor beter contrast met de zwarte tafel */
-    background: linear-gradient(135deg, #475569, #1e293b);
-    border: 2px solid #64748b;
+    width: 56px;
+    height: 56px;
+    /* Bierviltje look */
+    background: var(--accent-cream);
+    border: 4px solid var(--bg-wood);
+    color: var(--text-dark);
     
-    /* FIX: Tekst is nu fel wit met een harde schaduw */
-    color: #ffffff; 
-    font-weight: 900; /* Dikker gedrukt */
-    font-size: 1.1em;
-    text-shadow: 0 2px 4px #000000; /* Zwarte rand om de letter */
+    font-family: var(--font-heading);
+    font-weight: bold;
+    font-size: 1.2em;
     
-    border-radius: 50%;
+    border-radius: 50%; /* Rond viltje */
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-    position: relative;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
 }
 
 .p-name {
     font-size: 0.8em;
-    color: #ffffff;
+    color: var(--accent-cream);
     font-weight: 700;
-    margin-top: 6px; /* Iets dichter op de avatar */
-    text-shadow: 0 1px 3px #000000;
-    background-color: rgba(0,0,0,0.6); /* Iets donkerder voor leesbaarheid */
-    padding: 2px 10px;
-    border-radius: 12px;
-    white-space: nowrap;
-    z-index: 25; /* Zorg dat de naam bovenop ligt */
+    margin-top: 5px;
+    text-shadow: 0 2px 4px #000;
+    background-color: rgba(0,0,0,0.6);
+    padding: 2px 8px;
+    border-radius: 4px;
 }
 
-/* --- Actieve Speler Highlight --- */
+/* Actieve speler: Gouden rand */
 .active-turn .avatar {
-    border-color: var(--accent-primary);
-    background: var(--accent-primary);
-    /* Bij actieve speler (blauw) ook witte tekst houden */
-    color: #ffffff; 
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
-    animation: pulse-ring 2s infinite;
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.6);
+    background: #fff;
+    animation: none; /* Geen pulse, maar gloed */
 }
 
-.active-turn .p-name {
-    color: var(--accent-primary);
-    background-color: rgba(15, 23, 42, 0.95);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-}
-
-@keyframes pulse-ring {
-    0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
-}
-
-/* --- Speler Posities (FIX voor "Jij" label) --- */
-/* We zetten de spelers iets meer 'op' de tafel, ipv aan de rand */
-
-.p-top { 
-    top: 15px; /* Was -30px */
-    left: 50%; 
-    transform: translateX(-50%); 
-}
-
-.p-bottom { 
-    bottom: 30px; /* Was -30px. Nu hoog genoeg zodat 'Jij' boven de kaarten uitkomt */
-    left: 50%; 
-    transform: translateX(-50%); 
-}
-
-.p-left { 
-    left: 15px; /* Was -30px */
-    top: 50%; 
-    transform: translateY(-50%); 
-}
-
-.p-right { 
-    right: 15px; /* Was -30px */
-    top: 50%; 
-    transform: translateY(-50%); 
-}
-
-/* Debug Slots */
-.slot { position: absolute; width: 10px; height: 10px; pointer-events: none; }
-.slot-top    { top: 35%; left: 50%; }
-.slot-bottom { bottom: 35%; left: 50%; }
-.slot-left   { top: 50%; left: 35%; }
-.slot-right  { top: 50%; right: 35%; }
+/* Posities */
+.p-top { top: 10px; left: 50%; transform: translateX(-50%); }
+.p-bottom { bottom: 25px; left: 50%; transform: translateX(-50%); }
+.p-left { left: 10px; top: 50%; transform: translateY(-50%); }
+.p-right { right: 10px; top: 50%; transform: translateY(-50%); }
 
 /* =========================================
-   4. KAARTEN (MODERN DESIGN)
+   4. KAARTEN (KLASSIEK)
    ========================================= */
+
+/* In game.css - Vervang de sectie 4. KAARTEN */
 
 .card-modern {
     width: 65px;
     height: 96px;
-    /* Papier textuur effect */
-    background: linear-gradient(160deg, #ffffff 0%, #f1f5f9 100%);
-    border-radius: 8px;
-    box-shadow: 
-        0 2px 5px rgba(0,0,0,0.2),
-        0 5px 15px rgba(0,0,0,0.1);
+    background-color: #fcfcf7;
+    /* Subtieler patroon voor rustigere achtergrond */
+    background-image: linear-gradient(0deg, transparent 50%, rgba(0,0,0,0.02) 50%);
+    background-size: 4px 4px;
+    
+    border-radius: 6px;
+    box-shadow: 1px 2px 4px rgba(0,0,0,0.3);
+        
     position: relative;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 5px;
-    font-family: 'Poppins', sans-serif;
-    border: 1px solid rgba(0,0,0,0.05);
+    padding: 2px 4px; /* Iets minder padding zodat cijfer groter kan */
+    
+    /* HIER IS DE BELANGRIJKE WISSEL: */
+    font-family: var(--font-card); 
+    border: 1px solid #dcdcdc;
+    overflow: hidden;
 }
 
 .card-value {
-    font-weight: 800;
-    font-size: 1.1em;
+    font-weight: 700; /* Dikgedrukt voor slechtzienden */
+    font-size: 1.4em; /* Groter formaat */
     line-height: 0.9;
+    z-index: 2;
+    text-align: center; /* Zorgt dat letters mooi middenin staan */
+    letter-spacing: -1px; /* Cijfers iets compacter */
 }
+
+/* Zorg dat het symbooltje onder het cijfer ook duidelijk is */
+.card-value span {
+    font-size: 0.7em;
+    display: block; /* Zet symbool echt onder het cijfer */
+    margin-top: -2px;
+}
+
+/* Maak de kleuren iets feller voor beter contrast */
+.suit-red { color: #d32f2f; } /* Helderder rood */
+.suit-black { color: #000000; } /* Puur zwart */
+
+/* Kleuren ietsje donkerder voor vintage look */
+.suit-red { color: #a61212; text-shadow: 0 1px 0 rgba(255,200,200,0.5); }
+.suit-black { color: #1a1a1a; text-shadow: 0 1px 0 rgba(200,200,200,0.5); }
 
 .card-suit-big {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 55%; left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 2.5em;
-    opacity: 1;
+    font-size: 3.2em;
+    opacity: 0.2; /* Watermerk effect in het midden */
+    filter: sepia(100%); /* Beetje vergeeld */
 }
 
+/* Onderste cijfer omgedraaid */
 .card-corner-btm {
-    align-self: flex-end;
     transform: rotate(180deg);
 }
 
-/* Kleuren van de kaarten */
-.suit-red { color: #dc2626; }   /* Iets donkerder rood voor beter contrast */
-.suit-black { color: #1e293b; }
+/* --- Klassieke Achterkant (CSS Patroon) --- */
+/* Gebruik deze class als je ooit een dichte kaart wilt tonen */
+.card-back-classic {
+    background-color: #fff;
+    background-image: 
+        linear-gradient(45deg, #8d6e63 25%, transparent 25%, transparent 75%, #8d6e63 75%, #8d6e63),
+        linear-gradient(45deg, #8d6e63 25%, transparent 25%, transparent 75%, #8d6e63 75%, #8d6e63);
+    background-position: 0 0, 10px 10px;
+    background-size: 20px 20px;
+    border: 4px solid #fff; /* Witte rand eromheen */
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+}
 
 /* =========================================
-   5. SPELER HAND (Onderin)
+   5. SPELER HAND & ACTIES
    ========================================= */
 
 .bottom-section {
@@ -308,13 +317,13 @@
     display: flex;
     justify-content: center;
     z-index: 50;
+    /* Houten balk onderin? Nee, houden we open */
 }
 
 .player-hand-wrapper {
     width: 100%;
     display: flex;
     justify-content: center;
-    perspective: 600px;
 }
 
 .player-hand {
@@ -322,165 +331,269 @@
     align-items: flex-end;
     justify-content: center;
     height: 100%;
-    padding-bottom: 25px;
+    padding-bottom: 15px;
 }
 
 .hand-card {
-    margin-right: -30px; /* Kaarten overlappen meer */
-    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    margin-right: -35px; /* Dichter op elkaar, zoals in de hand */
+    transition: transform 0.2s;
     cursor: pointer;
     transform-origin: bottom center;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.2);
 }
-
 .hand-card:last-child { margin-right: 0; }
 
-/* Hover effect in hand */
 .hand-card:hover {
-    transform: translateY(-25px) scale(1.1) rotate(0deg) !important;
+    transform: translateY(-30px) scale(1.1) !important;
     z-index: 100;
-    margin: 0 10px; /* Maak ruimte om kaart te pakken */
+}
+
+/* Troefkiezer Overlay (Houten bordje) */
+.action-overlay {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #5d4037; /* Hout */
+    border: 4px solid #3e2723;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 280px;
+    text-align: center;
+}
+
+.action-title {
+    font-family: var(--font-heading);
+    font-size: 1.3em;
+    color: var(--accent-gold);
+    /* Verwijder vage schaduw */
+    text-shadow: 1px 1px 0 #000;
+    letter-spacing: 0.5px;
+}
+
+.suit-btn {
+    background: #eefeeb; /* Crème knop */
+    border: 1px solid #aaa;
+    border-radius: 50%;
+    width: 50px; height: 50px;
+    font-size: 1.8em;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.suit-btn.h, .suit-btn.d { color: #b71c1c; }
+.suit-btn.s, .suit-btn.c { color: #000; }
+
+.btn-text {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: var(--font-body);
+    font-size: 0.9em;
+}
+.btn-text:hover { color: #fff; text-decoration: underline; }
+
+/* Toast Meldingen */
+.toast {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--accent-cream);
+    color: var(--text-dark);
+    border: 2px solid var(--bg-wood);
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-family: var(--font-heading);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    z-index: 200;
+}
+
+/* Kaart Animaties op Tafel */
+.table-anim-card {
+    position: absolute;
+    width: 65px; height: 96px;
+    z-index: 150;
+    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.4);
+}
+.fly-in-bottom { transform: translate(-50%, 400px); }
+.fly-in-top    { transform: translate(-50%, -400px); }
+.fly-in-left   { transform: translate(-400px, -50%); }
+.fly-in-right  { transform: translate(400px, -50%); }
+
+.on-table-bottom { top: 60%; left: 50%; transform: translate(-50%, -50%) rotate(-5deg); }
+.on-table-top    { top: 40%; left: 50%; transform: translate(-50%, -50%) rotate(5deg); }
+.on-table-left   { top: 50%; left: 40%; transform: translate(-50%, -50%) rotate(-10deg); }
+.on-table-right  { top: 50%; right: 40%; transform: translate(-50%, -50%) rotate(10deg); }
+
+/* =========================================
+   6. OVERLAYS (Vorige Slag & Popups)
+   ========================================= */
+
+/* De achtergrond van de overlay (dimt het scherm) */
+#last-trick-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Donker en transparant */
+    backdrop-filter: blur(2px);     /* Wazig effect */
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Het houten paneel zelf */
+.last-trick-container {
+    background: radial-gradient(circle, #5d4037, #3e2723);
+    border: 4px solid #8d6e63; /* Lichtere houten rand */
+    border-radius: 12px;
+    padding: 20px;
+    
+    /* Diepte effecten */
+    box-shadow: 
+        0 20px 50px rgba(0,0,0,0.8),    /* Schaduw op tafel */
+        inset 0 0 20px rgba(0,0,0,0.5); /* Schaduw binnenin */
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 300px;
+    transform: scale(1.1); /* Iets groter */
+    text-align: center;
+}
+
+/* De titel "Vorige Slag" */
+.last-trick-container h3 {
+    font-family: var(--font-heading);
+    color: var(--accent-gold);
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 0 #000;
+    font-size: 1.5em;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    width: 100%;
+    padding-bottom: 10px;
+}
+
+/* De container voor de kaarten */
+.last-trick-cards {
+    display: flex; 
+    gap: 10px; 
+    pointer-events: none;
+    margin-bottom: 10px;
+}
+
+/* De kaarten in dit venster iets kleiner maken */
+.last-trick-cards .card-modern {
+    transform: scale(0.9);
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+}
+
+/* Tekstje (Klik om te sluiten) */
+.last-trick-container p {
+    margin-top: 15px; 
+    font-size: 0.8em; 
+    color: var(--text-muted);
+    font-family: var(--font-body);
 }
 
 /* =========================================
-   6. OVERLAYS & POPUPS
+   7. TROEF KIEZER & KNOPPEN
    ========================================= */
 
-/* Meldingen (Toast) */
-.toast {
+/* Dit is het bakje dat omhoog komt als je troef moet kiezen */
+#trump-selection.action-overlay {
     position: absolute;
-    top: 25%; /* Was 50%, nu staat hij boven de kaarten */
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 100; /* Lager dan de kaarten */
-    pointer-events: none;
-    background: rgba(15, 23, 42, 0.95);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: white;
-    padding: 12px 25px;
-    border-radius: 30px;
-    z-index: 200;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    font-weight: 600;
-    text-align: center;
-    pointer-events: none;
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -40%); } to { opacity: 1; transform: translate(-50%, -50%); } }
-
-/* Actie Menu (Troef kiezen) */
-.action-overlay {
-    position: absolute;
-    bottom: 30px;
+    bottom: 40px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(30, 41, 59, 0.95);
+    
+    /* Houten paneel stijl */
+    background: radial-gradient(circle, #5d4037, #3e2723);
+    border: 4px solid #8d6e63;
     padding: 20px;
-    border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    border-radius: 12px;
+    
+    /* Schaduw voor diepte */
+    box-shadow: 
+        0 10px 30px rgba(0,0,0,0.8),
+        inset 0 0 20px rgba(0,0,0,0.5);
+        
     z-index: 300;
     display: flex;
     flex-direction: column;
     gap: 15px;
     width: 300px;
     text-align: center;
-    border: 1px solid rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
 }
 
+/* De titel "Kies Troef" */
 .action-title {
-    font-size: 0.9em;
-    color: #94a3b8;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-family: var(--font-heading);
+    font-size: 1.4em;
+    color: var(--accent-gold);
+    text-shadow: 2px 2px 0 #000;
+    margin-bottom: 5px;
+    display: block;
 }
 
+/* Container voor de 4 knoppen */
 .trump-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
 }
 
+/* De knoppen zelf (Ivoren fiches) */
 .suit-btn {
-    background: #475569;
-    border: none;
-    border-radius: 12px;
-    font-size: 1.8em;
-    padding: 10px;
+    /* Ivoren/Beige look */
+    background: radial-gradient(circle at 30% 30%, #fff, #e0e0e0);
+    border: 2px solid #bcaaa4; /* Randje van het fiche */
+    border-radius: 50%;
+    width: 55px; height: 55px;
+    
+    font-size: 2em;
     cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-}
-
-.suit-btn.h, .suit-btn.d { color: #ef4444; }
-.suit-btn.s, .suit-btn.c { color: white; }
-
-.suit-btn:hover {
-    background: #64748b;
-    transform: translateY(-3px);
-}
-.suit-btn:active { transform: translateY(0); }
-
-.btn-text {
-    background: none;
-    border: none;
-    color: #94a3b8;
-    text-decoration: underline;
-    cursor: pointer;
-    font-size: 0.9em;
-    padding: 5px;
-}
-.btn-text:hover { color: #fff; }
-
-/* =========================================
-   7. ANIMATIES OP TAFEL
-   ========================================= */
-
-.table-anim-card {
-position: absolute;
-    width: 65px;
-    height: 96px;
-    z-index: 150; /* Verhoogd naar 150 zodat ze ALTIJD bovenop liggen */
-    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-}
-
-/* Startposities (buiten beeld) */
-.fly-in-bottom { transform: translate(-50%, 400px) rotate(0deg); }
-.fly-in-top    { transform: translate(-50%, -400px) rotate(180deg); }
-.fly-in-left   { transform: translate(-400px, -50%) rotate(90deg); }
-.fly-in-right  { transform: translate(400px, -50%) rotate(-90deg); }
-
-/* Eindposities (op tafel - ietsje willekeurig gedraaid voor realisme) */
-.on-table-bottom { top: 60%; left: 50%; transform: translate(-50%, -50%) rotate(-5deg); }
-.on-table-top    { top: 40%; left: 50%; transform: translate(-50%, -50%) rotate(5deg); }
-.on-table-left   { top: 50%; left: 40%; transform: translate(-50%, -50%) rotate(-10deg); }
-.on-table-right  { top: 50%; right: 40%; transform: translate(-50%, -50%) rotate(10deg); }
-
-/* Shake bij fout */
-.shake-anim { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-@keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
-}
-
-/* --- NIEUW: VORIGE SLAG POPUP --- */
-.overlay-full {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.9);
-    backdrop-filter: blur(8px);
-    z-index: 900;
+    
+    /* 3D effect */
+    box-shadow: 
+        0 4px 6px rgba(0,0,0,0.4),
+        inset -2px -2px 5px rgba(0,0,0,0.2);
+    
+    transition: transform 0.1s;
     display: flex;
     justify-content: center;
     align-items: center;
-    animation: fadeIn 0.2s;
-    cursor: pointer;
+    padding-top: 5px; /* Symbool iets centreren */
 }
-.last-trick-container {
-    text-align: center;
-    color: white;
+
+/* Klik effect */
+.suit-btn:active {
+    transform: scale(0.95);
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* Specifieke kleuren voor de symbolen op de fiches */
+.suit-btn.h, .suit-btn.d { color: #c62828; text-shadow: 0 1px 0 rgba(255,255,255,0.8); }
+.suit-btn.s, .suit-btn.c { color: #212121; text-shadow: 0 1px 0 rgba(255,255,255,0.8); }
+
+/* De 'PAS' knop */
+#btn-pass {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 1em;
+    cursor: pointer;
+    margin-top: 5px;
+    text-decoration: underline;
+}
+#btn-pass:hover {
+    color: #fff;
 }
