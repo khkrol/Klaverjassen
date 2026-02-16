@@ -102,22 +102,45 @@
     letter-spacing: 1px;
 }
 
+/* --- OPTIE 1: GOUDEN MUNT STIJL --- */
+
 .trump-display {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: rgba(0,0,0,0.2);
+    position: relative;
+    width: 60px;
+    height: 60px;
+    
+    /* Goud verloop */
+    background: radial-gradient(circle at 30% 30%, #ffecb3, #ffc107, #ff8f00);
+    border: 3px solid #fff; /* Witte rand voor contrast */
     border-radius: 50%;
-    width: 50px; height: 50px;
+    
+    display: flex;
     justify-content: center;
-    border: 2px dashed rgba(255,255,255,0.2);
+    align-items: center;
+    
+    /* 3D effect met schaduw */
+    box-shadow: 
+        0 4px 6px rgba(0,0,0,0.4),
+        inset 0 -2px 5px rgba(0,0,0,0.2);
+    
+    z-index: 10; /* Zorg dat hij bovenop ligt */
+    margin: 0 15px; /* Wat ruimte tussen de scores */
+}
+
+/* Verberg de tekst "TROEF", het symbool is genoeg */
+.trump-display .label {
+    display: none; 
 }
 
 .trump-icon {
-    font-size: 1.5em;
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+    font-size: 2em; /* Lekker groot */
+    line-height: 1;
+    filter: drop-shadow(0 1px 1px rgba(255,255,255,0.4));
 }
+
+/* Specifieke kleuren voor de symbolen op goud */
+.trump-icon.suit-red { color: #d32f2f; text-shadow: 0 1px 0 rgba(255,255,255,0.3); }
+.trump-icon.suit-black { color: #212121; text-shadow: 0 1px 0 rgba(255,255,255,0.3); }
 
 .icon-btn-small {
     background: none;
@@ -356,12 +379,17 @@
 }
 
 .hand-card {
-    margin-right: -35px;
+    /* OUD: margin-right: -35px; */
+    
+    /* NIEUW: Minder overlap, dus breder */
+    margin-right: -22px; 
+    
     transition: transform 0.2s;
     cursor: pointer;
     transform-origin: bottom center;
     box-shadow: -2px 0 5px rgba(0,0,0,0.2);
 }
+
 .hand-card:last-child { margin-right: 0; }
 
 .hand-card:hover {
@@ -369,13 +397,42 @@
     z-index: 100;
 }
 
+/* --- AANGEPASTE VERSIE VOOR GAME.CSS --- */
+
+/* 1. De Wrapper (Die de draaiing/waaier regelt) */
 .card-disabled {
-    opacity: 0.5;
-    transform: scale(0.9) !important;
+    /* BELANGRIJK: Hier GEEN 'transform' gebruiken! 
+       Anders overschrijf je de waaier-rotatie uit de Javascript. */
+       
     cursor: not-allowed !important;
-    filter: brightness(0.9);
     pointer-events: none;
-    border: 1px dashed #999;
+    
+    /* Zorg dat deze kaarten visueel naar de achtergrond verdwijnen */
+    z-index: 0 !important; 
+}
+
+/* 2. De Kaart zelf (Binnenin de wrapper) */
+/* Hier passen we de looks aan: donkerder, iets kleiner, maar wel leesbaar */
+.card-disabled .card-modern {
+    /* Maak de kaart zelf iets kleiner, zonder de positie in de waaier te verpesten */
+    transform: scale(0.9) translateY(10px); 
+    
+    /* HET EFFECT: "In de schaduw" */
+    /* Brightness 0.5 maakt het donker (als een lamp die uit staat) */
+    /* Grayscale 0.3 haalt een beetje kleur weg, maar niet alles */
+    filter: brightness(0.5) grayscale(0.3);
+    
+    /* Geen opacity gebruiken, want dan wordt tekst wazig */
+    opacity: 1; 
+    
+    /* Randje donker maken */
+    border-color: #555;
+    background-color: #e0e0e0; /* Iets grijzer papier */
+    
+    /* Schaduw weghalen zodat ze 'plat' lijken */
+    box-shadow: none;
+    
+    transition: all 0.3s ease;
 }
 
 /* =========================================
@@ -808,3 +865,118 @@
     pointer-events: none;
     z-index: 2000;
 }
+
+/* --- GEDRAAIDE KAART (DRENTS) --- */
+.bid-card-overlay {
+    position: absolute;
+    top: 45%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.bid-card-label {
+    font-family: var(--font-heading);
+    color: var(--accent-gold);
+    text-shadow: 2px 2px 0 #000;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    background: rgba(0,0,0,0.6);
+    padding: 2px 10px;
+    border-radius: 4px;
+}
+
+/* Zorg dat de knoppencontainers goed staan */
+#controls-normal, #controls-drents {
+    display: flex;
+    align-items: center;
+}
+
+/* =========================================
+   9. TURFLIJST (SCORE SHEET) - NIEUW
+   ========================================= */
+
+.score-sheet-container {
+    background-color: var(--bg-chalk);
+    /* Subtiel patroon */
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 10px);
+    border: 8px solid #5d4037;
+    border-radius: 12px;
+    padding: 20px;
+    width: 95%;
+    max-width: 400px;
+    box-shadow: 
+        inset 0 0 50px rgba(0,0,0,0.8),
+        0 20px 50px rgba(0,0,0,0.9);
+    text-align: center;
+    position: relative;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.score-sheet-container h3 {
+    font-family: var(--font-heading);
+    color: var(--accent-gold);
+    font-size: 2em;
+    margin: 0 0 15px 0;
+    text-shadow: 2px 2px 0 #000;
+    border-bottom: 2px dashed rgba(255,255,255,0.2);
+    padding-bottom: 10px;
+}
+
+.score-table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
+    padding: 5px;
+}
+
+.chalk-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Patrick Hand', cursive, sans-serif; /* Fallback naar default */
+    color: #eee;
+    font-size: 1.1em;
+}
+
+.chalk-table th {
+    border-bottom: 2px solid #fff;
+    padding: 8px;
+    color: var(--text-muted);
+    font-family: var(--font-heading);
+}
+
+.chalk-table td {
+    border-bottom: 1px dashed rgba(255,255,255,0.15);
+    padding: 8px 5px;
+}
+
+/* Verticale scheidingslijnen */
+.chalk-table th:nth-child(2),
+.chalk-table td:nth-child(2) {
+    border-right: 1px solid rgba(255,255,255,0.3);
+    border-left: 1px solid rgba(255,255,255,0.3);
+}
+
+/* De Totaal rij onderaan */
+.total-row td {
+    border-top: 3px double #fff;
+    border-bottom: none;
+    font-weight: bold;
+    color: var(--accent-gold);
+    padding-top: 15px;
+    font-size: 1.3em;
+    font-family: var(--font-heading);
+}
+
+/* Pit/Nat markeringen */
+.mark-pit { color: #ffeb3b; font-weight: bold; }
+.mark-nat { color: #ff5252; font-style: italic; }

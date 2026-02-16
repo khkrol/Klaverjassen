@@ -1,8 +1,9 @@
 /**
- * KLAVERJAS MAIN (Versie 2.8 - Debug & Fix)
+ * KLAVERJAS MAIN (Versie 3.2 - Rotatie Fix Compleet)
  */
 const KlaverjasMain = {
     gameSpeed: 900,      
+    busy: false,
     playingTeam: null,   
     bidderIndex: 0,
     passesCount: 0,
@@ -18,35 +19,44 @@ const KlaverjasMain = {
         return (index === 0) ? "Jij" : names[index];
     },
 
-    init: function() {
-        const savedSpeed = localStorage.getItem('klaverjas_speed') || 'normal';
-        this.setGameSpeed(savedSpeed);
+init: function() {
+    // Check of Config en Core geladen zijn
+    if (typeof KJConfig === 'undefined' || typeof KJCore === 'undefined') {
+        console.error("CRITISCH: Core bestanden niet geladen.");
+        return;
+    }
 
-        const savedRules = localStorage.getItem('klaverjas_rules') || 'rotterdam';
-        this.setRuleSet(savedRules);
-        
-        this.bindEvents();
-        this.showMenu();
-    },
+    this.bindEvents();
+    this.showMenu();
+    this.updateSettingsUI();
+    
+    console.log("Klaverjas Main geladen. Klaar voor start.");
+},
 
-    bindEvents: function() {
-        // Koppel alle knoppen aan functies
+bindEvents: function() {
         const clicks = {
-            'btn-start-game': () => this.startGame(),
+            'btn-start-game': () => this.startGame(true),
             'btn-topscores': () => this.showLeaderboard(),
             'btn-rules': () => this.showRules(),
             'btn-settings': () => this.showSettings(),
             'btn-back-menu': () => this.showMenu(),
             'btn-back-rules': () => this.showMenu(),
             'btn-back-settings': () => this.showMenu(),
-            'btn-restart': () => { if(confirm("Opnieuw beginnen?")) this.startGame(); },
+            'btn-restart': () => { if(confirm("Opnieuw beginnen?")) this.startGame(true); },
             'btn-pass': () => this.pass(),
             'btn-last-trick': () => this.toggleLastTrick(),
             'spd-slow': () => this.setGameSpeed('slow'),
             'spd-normal': () => this.setGameSpeed('normal'),
             'spd-fast': () => this.setGameSpeed('fast'),
             'rule-rotterdam': () => this.setRuleSet('rotterdam'),
-            'rule-amsterdam': () => this.setRuleSet('amsterdam')
+            'rule-amsterdam': () => this.setRuleSet('amsterdam'),
+            'mode-normal': () => this.setBiddingMode('normal'),
+            'mode-drents': () => this.setBiddingMode('drents'),
+            'btn-play-drents': () => this.acceptDrentsBid(),
+            
+            // --- NIEUWE KNOPPEN ---
+            'btn-score-sheet': () => KJUI.toggleScoreSheet(true),
+            'btn-close-sheet': () => KJUI.toggleScoreSheet(false)
         };
 
         for (const [id, handler] of Object.entries(clicks)) {
@@ -100,7 +110,14 @@ const KlaverjasMain = {
         this.updateSettingsUI();
     },
 
+    setBiddingMode: function(mode) {
+        KJCore.biddingMode = mode;
+        localStorage.setItem('klaverjas_mode', mode);
+        this.updateSettingsUI();
+    },
+
     updateSettingsUI: function() {
+        // Snelheid
         const savedSpeed = localStorage.getItem('klaverjas_speed') || 'normal';
         ['slow', 'normal', 'fast'].forEach(type => {
             const btn = document.getElementById('spd-' + type);
@@ -109,10 +126,10 @@ const KlaverjasMain = {
         const activeSpeedBtn = document.getElementById('spd-' + savedSpeed);
         if(activeSpeedBtn) activeSpeedBtn.classList.add('btn-active');
         
-        const speedLabels = { slow: "Rustig", normal: "Normaal", fast: "Vlot" };
         const lblSpeed = document.getElementById('current-speed-label');
-        if(lblSpeed) lblSpeed.innerText = `Huidig: ${speedLabels[savedSpeed]}`;
+        if(lblSpeed) lblSpeed.innerText = `Huidig: ${savedSpeed === 'slow' ? 'Rustig' : (savedSpeed === 'fast' ? 'Vlot' : 'Normaal')}`;
 
+        // Regels
         const savedRules = localStorage.getItem('klaverjas_rules') || 'rotterdam';
         ['rotterdam', 'amsterdam'].forEach(type => {
             const btn = document.getElementById('rule-' + type);
@@ -121,14 +138,21 @@ const KlaverjasMain = {
         const activeRuleBtn = document.getElementById('rule-' + savedRules);
         if(activeRuleBtn) activeRuleBtn.classList.add('btn-active');
 
-        const ruleLabels = { rotterdam: "Rotterdams (Altijd troeven)", amsterdam: "Amsterdams (Maatslag = Vrij)" };
-        const lblRule = document.getElementById('current-rule-label');
-        if(lblRule) lblRule.innerText = `Huidig: ${ruleLabels[savedRules]}`;
+        // Mode
+        const savedMode = localStorage.getItem('klaverjas_mode') || 'normal';
+        ['normal', 'drents'].forEach(type => {
+            const btn = document.getElementById('mode-' + type);
+            if(btn) btn.classList.remove('btn-active');
+        });
+        const activeModeBtn = document.getElementById('mode-' + savedMode);
+        if(activeModeBtn) activeModeBtn.classList.add('btn-active');
+
+        const lblMode = document.getElementById('current-mode-label');
+        if(lblMode) lblMode.innerText = `Huidig: ${savedMode === 'drents' ? 'Drents' : 'Vrije Keuze'}`;
     },
 
-    startGame: function() {
+startGame: function(isNewGame = false) {
         try {
-            // Veiligheidscheck: Zijn de andere scripts geladen?
             if (typeof KJCore === 'undefined' || typeof KJUI === 'undefined' || typeof KJConfig === 'undefined') {
                 throw new Error("Een van de spel-bestanden (Core, UI of Config) is niet geladen!");
             }
@@ -136,26 +160,44 @@ const KlaverjasMain = {
             document.getElementById('main-menu').classList.add('hidden');
             document.getElementById('game-view').classList.remove('hidden');
 
+            // --- ROTATIE LOGICA & TURFLIJST RESET ---
+            if (isNewGame) {
+                // NIEUW SPEL (Ronde 1):
+                // Reset punten in de CORE (niet in Main)
+                KJCore.matchPoints = { us: 0, them: 0 };
+                
+                // Reset de geschiedenis/turflijst in de CORE
+                KJCore.matchHistory = []; 
+                KJUI.updateScoreSheet([], { us: 0, them: 0 }); // Maak de lijst visueel ook leeg
+
+                // Zet deler op West (1), zodat bieder Noord (2) begint
+                KJCore.dealerIndex = 1; 
+            } else {
+                // VOLGENDE RONDE (Ronde 2+):
+                // Schuif deler eentje op
+                KJCore.dealerIndex = (KJCore.dealerIndex + 1) % 4;
+            }
+
             KJCore.init(); 
             KJUI.init(); 
-            KJUI.updateScore({ us: 0, them: 0 }); 
+            KJUI.updateScore(KJCore.matchPoints); // Update totaalscore
             KJUI.setTrump(null);
+            
+            KJCore.biddingRound = 1;
+            KJCore.proposedSuit = null;
             
             if(KJCore.currentRound) {
                 KJUI.updateRound(KJCore.currentRound);
             }
 
-            // Oude kaarten verwijderen
+            // Oude animaties verwijderen
             const oldCards = document.querySelectorAll('.table-anim-card');
             oldCards.forEach(c => c.remove());
 
             this.playingTeam = null;
             this.isFirstTrick = true; 
             
-            // Render de hand van de speler
             this.updateMyHand();
-            
-            // Start het bieden
             this.startBiddingPhase();
 
         } catch (error) {
@@ -167,18 +209,39 @@ const KlaverjasMain = {
     startBiddingPhase: function() {
         this.bidderIndex = (KJCore.dealerIndex + 1) % 4;
         this.passesCount = 0;
+        KJCore.biddingRound = 1; 
+
+        if (KJCore.biddingMode === 'drents') {
+            const suits = ['h', 'd', 's', 'c'];
+            KJCore.proposedSuit = suits[Math.floor(Math.random() * suits.length)];
+            const randomRank = ['J', '9', 'A', '10', 'K', 'Q'][Math.floor(Math.random() * 6)];
+            
+            if (KJUI.showBidCard) {
+                KJUI.showBidCard({ suit: KJCore.proposedSuit, rank: randomRank });
+                const suitName = Object.values(KJConfig.SUITS).find(k => k.id === KJCore.proposedSuit).name;
+                KJUI.showMessage(`Gedraaid: ${suitName}`);
+            }
+        }
         
         const bidderName = this.getPlayerNameSubject(this.bidderIndex);
-        KJUI.showMessage(`${bidderName} mag bieden.`);
-        
-        this.askBidder();
+        setTimeout(() => {
+            KJUI.showMessage(`${bidderName} mag spreken.`);
+            this.askBidder();
+        }, 1000);
     },
 
     askBidder: function() {
         KJUI.updateActivePlayer(this.bidderIndex);
 
         if (this.passesCount >= 4) {
+            if (KJCore.biddingMode === 'drents' && KJCore.biddingRound === 1) {
+                this.handleDrentsForcedRound();
+                return;
+            }
+
             KJUI.showMessage("Iedereen past. Nieuwe ronde...", 2000);
+            if(KJUI.hideBidCard) KJUI.hideBidCard(); 
+            
             setTimeout(() => {
                 KJCore.reDeal(); 
                 KJUI.setTrump(null);
@@ -189,53 +252,110 @@ const KlaverjasMain = {
         }
 
         if (this.bidderIndex === 0) {
-            // Speler is aan de beurt
-            KJUI.showMessage("Kies Troef of Pas", 0);
-            KJUI.showTrumpSelection(true);
+            if (KJUI.showTrumpSelection) {
+                KJUI.showTrumpSelection(true, KJCore.biddingMode, KJCore.proposedSuit);
+            }
+            KJUI.showMessage("Jouw beurt: Kiezen of Passen?", 0);
         } else {
-            // Computer is aan de beurt
-            KJUI.showTrumpSelection(false);
+            if (KJUI.showTrumpSelection) KJUI.showTrumpSelection(false);
             const bidderName = this.getPlayerNameSubject(this.bidderIndex);
             KJUI.showMessage(`${bidderName} denkt na...`, 0);
             setTimeout(() => this.computerBid(this.bidderIndex), 1000);
         }
     },
 
+    handleDrentsForcedRound: function() {
+        KJCore.biddingRound = 2;
+        KJUI.showMessage("Iedereen past! Verplicht spelen...", 1500);
+        
+        const suits = ['h', 'd', 's', 'c'];
+        let newSuit = KJCore.proposedSuit;
+        while (newSuit === KJCore.proposedSuit) {
+            newSuit = suits[Math.floor(Math.random() * suits.length)];
+        }
+        
+        KJCore.proposedSuit = newSuit;
+        
+        const randomRank = ['J', '9', 'A'][Math.floor(Math.random() * 3)];
+        if(KJUI.showBidCard) KJUI.showBidCard({ suit: newSuit, rank: randomRank });
+        
+        const forehand = (KJCore.dealerIndex + 1) % 4;
+        const forehandName = this.getPlayerNameSubject(forehand);
+        const suitName = Object.values(KJConfig.SUITS).find(k => k.id === newSuit).name;
+        
+        setTimeout(() => {
+            KJUI.showMessage(`${forehandName} MOET spelen op ${suitName}!`);
+            this.chooseTrump(newSuit, forehand);
+        }, 1500);
+    },
+
+    acceptDrentsBid: function() {
+        if (KJCore.biddingMode === 'drents' && KJCore.proposedSuit) {
+            this.chooseTrump(KJCore.proposedSuit, 0);
+        }
+    },
+
     computerBid: function(playerIndex) {
         const hand = KJCore.hands[playerIndex];
-        const suits = ['h', 'd', 's', 'c'];
-        let bestSuit = null;
-        let maxPoints = 0;
-
-        suits.forEach(suit => {
+        
+        const calculateSuitPoints = (suit) => {
             let points = 0;
             let trumpCount = 0;
+            let hasNel = false;
+            let hasJas = false;
+
             hand.forEach(card => {
                 if (card.suit === suit) {
                     trumpCount++;
-                    if (card.rank === 'J') points += 20;
-                    if (card.rank === '9') points += 14;
-                    if (card.rank === 'A') points += 10;
-                } else if (card.rank === 'A') points += 5;
+                    if (card.rank === 'J') { points += 20; hasJas = true; }
+                    else if (card.rank === '9') { points += 14; hasNel = true; }
+                    else if (card.rank === 'A') points += 10;
+                    else points += 5; 
+                } else if (card.rank === 'A') {
+                    points += 5;
+                }
             });
-            points += (trumpCount * 10);
-            if (points > maxPoints) { maxPoints = points; bestSuit = suit; }
-        });
+            if (hasJas && hasNel) points += 15;
+            points += (trumpCount * 5); 
+            return points;
+        };
 
-        if (maxPoints > 45 && bestSuit) {
-            this.chooseTrump(bestSuit, playerIndex);
+        if (KJCore.biddingMode === 'drents') {
+            const points = calculateSuitPoints(KJCore.proposedSuit);
+            const threshold = 40; 
+
+            if (points > threshold) {
+                this.chooseTrump(KJCore.proposedSuit, playerIndex);
+            } else {
+                this.pass();
+            }
         } else {
-            this.pass();
+            const suits = ['h', 'd', 's', 'c'];
+            let bestSuit = null;
+            let maxPoints = 0;
+
+            suits.forEach(suit => {
+                let p = calculateSuitPoints(suit);
+                if (p > maxPoints) { maxPoints = p; bestSuit = suit; }
+            });
+
+            if (maxPoints > 45 && bestSuit) {
+                this.chooseTrump(bestSuit, playerIndex);
+            } else {
+                this.pass();
+            }
         }
     },
 
     chooseTrump: function(suit, playerIndex = 0) {
         KJCore.trumpSuit = suit;
         this.playingTeam = (playerIndex === 0 || playerIndex === 2) ? 'us' : 'them';
+        
         KJUI.setTrump(suit);
         KJUI.showTrumpSelection(false);
+        if(KJUI.hideBidCard) KJUI.hideBidCard();
+
         const suitName = Object.values(KJConfig.SUITS).find(s => s.id === suit).name;
-        
         KJUI.showMessage(`${this.getPlayerNameSubject(playerIndex)} speelt ${suitName}!`);
         
         KJCore.turnIndex = (KJCore.dealerIndex + 1) % 4;
@@ -259,25 +379,45 @@ const KlaverjasMain = {
             this.updateMyHand(); 
             KJUI.showMessage("Jouw beurt", 0);
         } else {
-            // Korte vertraging voor computer
             setTimeout(() => this.computerMove(playerIndex), this.gameSpeed);
         }
     },
 
-    onCardClick: function(cardIndex) {
-        if (KJCore.turnIndex !== 0) return; 
-        const card = KJCore.hands[0][cardIndex];
-        
-        if (KJCore.isValidMove(card, 0)) {
-            KJUI.playCardAnimation(card, 0);
-            const result = KJCore.playCard(cardIndex);
-            this.updateMyHand();
+onCardClick: function(cardIndex) {
+    // 1. Check: Is het mijn beurt en ben ik niet al bezig?
+    if (KJCore.turnIndex !== 0 || this.busy) return; 
+
+    const card = KJCore.hands[0][cardIndex];
+    const validation = KJCore.validateMove(card, 0);
+
+    if (validation.valid) {
+        this.busy = true; 
+
+        // 2. Start de animatie (visueel)
+        // Dit maakt een kopie die over het scherm vliegt
+        KJUI.playCardAnimation(card, 0);
+
+        // 3. Update de Core data (logica)
+        // De kaart wordt nu écht uit de array KJCore.hands[0] verwijderd
+        const result = KJCore.playCard(cardIndex);
+
+        // 4. DE OPLOSSING: Teken de hand DIRECT opnieuw
+        // Omdat de kaart uit de array is, wordt de hand nu getekend ZONDER die kaart.
+        // De overgebleven kaarten schuiven meteen netjes tegen elkaar aan.
+        // Of als het de laatste kaart was, is de hand nu direct leeg.
+        this.updateMyHand();
+
+        // 5. Wacht op de animatie en handel de beurt af
+        setTimeout(() => {
             this.handleTurnResult(result);
-        } else {
-            KJUI.shakeHand(); 
-            KJUI.showMessage("Dat mag niet! Bekennen of Troeven.");
-        }
-    },
+            this.busy = false; 
+        }, 600); // 600ms wachten tot de kaart op tafel ligt
+
+    } else {
+        KJUI.showMessage(validation.reason);
+        if(KJUI.shakeHand) KJUI.shakeHand();
+    }
+},
 
     computerMove: function(playerIndex) {
         const hand = KJCore.hands[playerIndex];
@@ -299,7 +439,6 @@ const KlaverjasMain = {
             return 0;
         };
 
-        // Eenvoudige AI: Als maat wint niets doen, anders proberen te winnen
         let chosenMove = validCards[0];
 
         if (KJCore.currentTrick.length > 0) {
@@ -318,7 +457,6 @@ const KlaverjasMain = {
                     chosenMove = validCards[0];
                 }
             } else {
-                // Maat ligt, speel punten (Aas of 10) indien geen troef
                 const highPoints = validCards.filter(move => 
                     move.card.suit !== KJCore.trumpSuit && 
                     (move.card.rank === 'A' || move.card.rank === '10')
@@ -332,7 +470,6 @@ const KlaverjasMain = {
                 }
             }
         } else {
-            // AI start: Aas (niet troef) is vaak goed
             const aces = validCards.filter(m => m.card.rank === 'A' && m.card.suit !== KJCore.trumpSuit);
             if (aces.length > 0) {
                 chosenMove = aces[0];
@@ -354,53 +491,55 @@ const KlaverjasMain = {
         if (result === 'TRICK_COMPLETE') {
             const winner = KJCore.getTrickWinner(KJCore.currentTrick);
             const isLastTrick = (KJCore.hands[0].length === 0);
-            KJCore.lastTrick = [...KJCore.currentTrick]; 
+            
+            let cardPoints = KJCore.calculateScore(KJCore.currentTrick, isLastTrick);
+            let roemResult = KJCore.calculateRoem(KJCore.currentTrick);
+            let roemPoints = roemResult.total;
+
+            KJCore.lastTrick = {
+                cards: [...KJCore.currentTrick],
+                winnerIndex: winner.playerIndex,
+                points: cardPoints,
+                roem: roemResult 
+            };
+
+            const totalPoints = cardPoints + roemPoints;
+            const winnerName = this.getPlayerName(winner.playerIndex);
+
+            KJCore.tricksWon[winner.playerIndex]++;
+            
+            if (winner.playerIndex === 0 || winner.playerIndex === 2) {
+                KJCore.points.us += totalPoints;
+            } else {
+                KJCore.points.them += totalPoints;
+            }
+            
+            KJUI.updateScore(KJCore.points);
+
+            let message = `${winnerName} pakt slag`;
+
+            if (roemPoints > 0) {
+                const roemTekst = roemResult.desc.join(' + ');
+                message = `${winnerName}: ${cardPoints} + ${roemTekst}!`;
+                KJUI.shakeHand(); 
+            } else if (cardPoints > 0) {
+                message = `${winnerName} (${cardPoints} punten)`;
+            }
+
+            KJUI.showMessage(message, 2000);
 
             setTimeout(() => {
-                let points = KJCore.calculateScore(KJCore.currentTrick, isLastTrick);
-                let roemSlag = KJCore.calculateRoem(KJCore.currentTrick);
-                let roemHand = 0;
-
-                if (this.isFirstTrick) {
-                    for (let i = 0; i < 4; i++) {
-                        roemHand += KJCore.checkHandRoem(i);
-                    }
-                    this.isFirstTrick = false; 
-                }
-
-                let totaalRoem = roemSlag + roemHand;
-                const winnerName = this.getPlayerName(winner.playerIndex);
-
-                if (totaalRoem > 0) {
-                    KJUI.showMessage(`ROEM! +${totaalRoem} (${winnerName} pakt slag)`, 2000);
-                } else {
-                    KJUI.showMessage(`${winnerName} pakt de slag`, 1000);
-                }
-
-                KJCore.tricksWon[winner.playerIndex]++;
-                if (winner.playerIndex === 0 || winner.playerIndex === 2) {
-                    KJCore.points.us += (points + totaalRoem);
-                } else {
-                    KJCore.points.them += (points + totaalRoem);
-                }
-                KJUI.updateScore(KJCore.points);
-
+                KJUI.clearTableAnimated(winner.playerIndex);
                 setTimeout(() => {
-                    KJUI.clearTableAnimated(winner.playerIndex);
-                    
-                    setTimeout(() => {
-                        KJCore.currentTrick = [];
-                        KJCore.turnIndex = winner.playerIndex;
-                        
-                        if (isLastTrick) {
-                            this.finalizeRound();
-                        } else {
-                            this.nextTurn();
-                        }
-                    }, 600); 
-                }, 1000);
-
-            }, 800); 
+                    KJCore.currentTrick = [];
+                    KJCore.turnIndex = winner.playerIndex;
+                    if (isLastTrick) {
+                        this.finalizeRound();
+                    } else {
+                        this.nextTurn();
+                    }
+                }, 600); 
+            }, 1500); 
         } else {
             this.nextTurn();
         }
@@ -422,7 +561,7 @@ const KlaverjasMain = {
                 const fullMsg = `${msgTitle}\nWij: ${result.roundScore.us} - Zij: ${result.roundScore.them}\nTotaal: Wij ${result.totalScore.us} - Zij ${result.totalScore.them}`;
                 
                 if (confirm(fullMsg + "\n\nVolgende ronde?")) {
-                    this.startGame(); 
+                    this.startGame(false); // <--- FALSE: Dit is een vervolgronde!
                 }
             }
         }, 1500);
@@ -460,7 +599,7 @@ const KlaverjasMain = {
     updateMyHand: function() { KJUI.renderHand(KJCore.hands[0]); },
 
     toggleLastTrick: function() {
-        if (KJCore.lastTrick.length === 0) {
+        if (!KJCore.lastTrick || !KJCore.lastTrick.cards || KJCore.lastTrick.cards.length === 0) {
             KJUI.showMessage("Nog geen vorige slag!", 1500);
             return;
         }

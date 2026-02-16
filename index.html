@@ -7,6 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Klaas Klaverjas</title>
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
     
     <link rel="manifest" href="manifest.json">
     
@@ -143,6 +144,17 @@
                     <p id="current-rule-label" style="font-size:0.9em; color:var(--accent-gold); margin-top:5px;">Huidig: Rotterdams</p>
                 </div>
 
+                <hr style="border-color:rgba(255,255,255,0.1); width:100%;">
+                
+                <div>
+                    <p style="color:var(--text-main); margin-bottom:10px;">Troefsysteem:</p>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <button id="mode-normal" class="btn-secondary" onclick="KlaverjasMain.setBiddingMode('normal')">🖐️ VRIJE KEUZE (Standaard)</button>
+                        <button id="mode-drents" class="btn-secondary" onclick="KlaverjasMain.setBiddingMode('drents')">🎲 DRENTS (Gedraaide Kaart)</button>
+                    </div>
+                    <p id="current-mode-label" style="font-size:0.9em; color:var(--accent-gold); margin-top:5px;">Huidig: Vrije Keuze</p>
+                </div>
+
             </div>
 
             <button id="btn-back-settings" class="btn-secondary" style="margin-top:20px;">TERUG</button>
@@ -167,11 +179,13 @@
                 </div>
                 
                 <div style="display:flex; gap:10px; align-items:center;">
+                    <button class="icon-btn-small" id="btn-score-sheet" title="Bekijk Turflijst">📝</button>
+    
                     <button class="icon-btn-small" id="btn-last-trick" title="Vorige slag">👁️</button>
                     <button class="icon-btn-small" id="btn-restart" title="Reset">↻</button>
-                    
-                    <div class="round-indicator">
-                        Ronde <span id="round-current">1</span>/16
+    
+                     <div class="round-indicator">
+                       Ronde <span id="round-current">1</span>/16
                     </div>
                 </div>
             </div>
@@ -202,16 +216,27 @@
                 </div>
             </div>
 
+<div id="bid-card-container" class="bid-card-overlay hidden">
+                <div class="bid-card-label">Troef?</div>
+                <div id="bid-card-display" class="card-modern" style="transform: scale(1.2);">
+                    </div>
+            </div>
+
             <div class="bottom-section">
                 <div id="trump-selection" class="action-overlay hidden">
-                    <span class="action-title">Kies Troef</span>
-                    <div class="trump-grid">
+                    
+                    <div id="controls-normal" class="trump-grid hidden">
                         <button id="btn-trump-h" class="suit-btn h">♥</button>
                         <button id="btn-trump-d" class="suit-btn d">♦</button>
                         <button id="btn-trump-s" class="suit-btn s">♠</button>
                         <button id="btn-trump-c" class="suit-btn c">♣</button>
                     </div>
-                    <button id="btn-pass" class="btn-text">PAS</button>
+
+                    <div id="controls-drents" class="trump-grid hidden" style="gap:20px;">
+                        <button id="btn-play-drents" class="btn-primary" style="padding: 5px 20px; font-size: 1em;">SPEEL OP <span id="drents-suit-icon">♥</span></button>
+                    </div>
+
+                    <button id="btn-pass" class="btn-text" style="margin-left:15px;">PAS</button>
                 </div>
 
                 <div class="player-hand-wrapper">
@@ -253,6 +278,35 @@
             </div>
 
         </div>
+
+        <div id="score-sheet-overlay" class="overlay-full hidden" style="z-index: 2500;">
+    <div class="score-sheet-container">
+        <h3>De Boomlijst</h3>
+        
+        <div class="score-table-wrapper">
+            <table class="chalk-table" id="score-table-body">
+                <thead>
+                    <tr>
+                        <th width="20%">Ronde</th>
+                        <th width="40%">Wij</th>
+                        <th width="40%">Zij</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td>Som</td>
+                        <td id="sheet-total-us">0</td>
+                        <td id="sheet-total-them">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <button id="btn-close-sheet" class="btn-primary" style="margin-top: 15px;">SLUITEN</button>
+    </div>
+</div>
         
         <canvas id="confetti-canvas"></canvas>
 

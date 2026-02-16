@@ -1,6 +1,6 @@
-const CACHE_NAME = 'klaas-klaverjas-v2'; // Versie opgehoogd
+const CACHE_NAME = 'klaas-klaverjas-live'; // Naam mag nu constant blijven
 
-// Alleen je eigen lokale bestanden
+// Bestanden die we zeker willen cachen voor offline gebruik
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -17,18 +17,17 @@ const CORE_ASSETS = [
   './icons/icon-512.png'
 ];
 
-// 1. Installeren
+// 1. Installeren (Zet de basis klaar)
 self.addEventListener('install', (e) => {
-  self.skipWaiting();
+  self.skipWaiting(); // Dwingt de nieuwe SW direct actief te worden
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Service Worker: Core Assets cachen');
       return cache.addAll(CORE_ASSETS);
     })
   );
 });
 
-// 2. Activeren & Opruimen
+// 2. Activeren (Oude caches opruimen)
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
@@ -39,15 +38,20 @@ self.addEventListener('activate', (e) => {
       }));
     })
   );
-  return self.clients.claim();
+  return self.clients.claim(); // Direct controle overnemen
 });
 
-// 3. Slimmere Fetch Strategy
+// 3. De Slimme "Network First" Strategie
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
-  // A. Google Fonts strategie (Stale-while-revalidate)
-  // We cachen fonts zodat ze offline werken, maar proberen ze wel te updaten.
+  // A. Firebase en API's NOOIT cachen (altijd live data)
+  if (url.href.includes('firestore') || url.href.includes('googleapis.com')) {
+    return; // Gebruik standaard netwerk gedrag
+  }
+
+  // B. Google Fonts: Stale-While-Revalidate (Snelheid + Update)
+  // Fonts veranderen zelden, dus eerst cache tonen, dan op achtergrond updaten
   if (url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com') {
     e.respondWith(
       caches.open(CACHE_NAME).then((cache) => {
@@ -63,18 +67,23 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // B. Firebase / API calls NIET cachen (anders zien spelers oude scores)
-  if (url.href.includes('firestore') || url.href.includes('googleapis.com/v1/projects')) {
-    return; // Gewoon het netwerk gebruiken
-  }
-
-  // C. Standaard App bestanden (Cache First, Network Fallback)
+  // C. JOUW SPELBESTANDEN: Network First (Altijd de nieuwste!)
+  // Probeer eerst het internet. Lukt dat? Update de cache en toon de nieuwe versie.
+  // Geen internet? Toon dan pas de oude versie.
   e.respondWith(
-    caches.match(e.request).then((res) => {
-      return res || fetch(e.request).catch(() => {
-        // Optioneel: toon een offline.html pagina als ook het netwerk faalt
-        // en de pagina niet in de cache zit.
-      });
-    })
+    fetch(e.request)
+      .then((networkResponse) => {
+        // Het is gelukt via internet!
+        // Maak een kopie voor de cache (voor de volgende keer als we offline zijn)
+        return caches.open(CACHE_NAME).then((cache) => {
+          cache.put(e.request, networkResponse.clone());
+          return networkResponse;
+        });
+      })
+      .catch(() => {
+        // Oeps, geen internet of server fout.
+        // Geef de versie uit de cache terug.
+        return caches.match(e.request);
+      })
   );
 });

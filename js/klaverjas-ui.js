@@ -1,16 +1,19 @@
 /**
- * KLAVERJAS UI (Klaas Klaverjas Versie 2.7 - Statusbalk Update)
+ * KLAVERJAS UI (Klaas Klaverjas Versie 3.0 - Met Drentse UI Support)
  */
 const KJUI = {
     el: {},
-    animationFrameId: null, // Voor het stoppen van de loop
+    animationFrameId: null, 
 
     init: function() {
         // Cache belangrijke elementen
-        // AANGEPAST: 'game-message' is vervangen door 'status-bar'
-        const ids = ['player-hand-container', 'status-bar', 'trump-selection', 
-                     'trump-indicator', 'score-us', 'score-them', 'game-table', 
-                     'confetti-canvas', 'game-over-overlay'];
+        const ids = [
+            'player-hand-container', 'status-bar', 'trump-selection', 
+            'trump-indicator', 'score-us', 'score-them', 'game-table', 
+            'confetti-canvas', 'game-over-overlay',
+            // NIEUW: Container voor de gedraaide kaart
+            'bid-card-container', 'bid-card-display'
+        ];
         
         ids.forEach(id => {
             this.el[id] = document.getElementById(id);
@@ -18,7 +21,7 @@ const KJUI = {
         
         // Aliassen
         this.el.hand = this.el['player-hand-container'];
-        this.el.msg = this.el['status-bar']; // Verwijst nu naar de statusbalk
+        this.el.msg = this.el['status-bar']; 
         this.el.trumpSelect = this.el['trump-selection'];
         this.el.trumpIndicator = this.el['trump-indicator'];
         this.el.scoreUs = this.el['score-us'];
@@ -47,8 +50,8 @@ const KJUI = {
             wrapper.className = 'hand-card'; 
             
             const mid = (totalCards - 1) / 2;
-            const rotate = (index - mid) * 4; 
-            const translateY = Math.abs(index - mid) * 4; 
+            const rotate = (index - mid) * 6; 
+            const translateY = Math.abs(index - mid) * 8; 
 
             wrapper.style.transform = `rotate(${rotate}deg) translateY(${translateY}px)`;
             wrapper.innerHTML = this.createCardHTML(card);
@@ -68,18 +71,21 @@ const KJUI = {
         });
     },
 
-    // AANGEPAST: Nieuwe logica voor de statusbalk
     showMessage: function(text, duration = 0) {
-        // Zet de tekst in de balk
         this.el.msg.textContent = text || ""; 
         
-        // Als er een tijdsduur is, wis de tekst dan na die tijd
-        // Maar check wel of de tekst in de tussentijd niet al is veranderd door een nieuwe melding
+        // Visuele Verfijning bij Roem
+        if (text.includes("Roem")) {
+            this.el.msg.style.color = "var(--accent-gold)";
+            this.el.msg.style.transform = "scale(1.2)";
+        } else {
+            this.el.msg.style.color = "";
+            this.el.msg.style.transform = "scale(1)";
+        }
+
         if (duration > 0) {
             setTimeout(() => {
-                if (this.el.msg.textContent === text) {
-                    this.el.msg.textContent = ""; // Of zet terug op een standaard welkomsttekst
-                }
+                // (Optioneel: bericht wissen na tijd, hier leeg gelaten voor persistentie in statusbalk)
             }, duration);
         }
     },
@@ -100,9 +106,60 @@ const KJUI = {
         this.el.trumpIndicator.className = `trump-icon ${s.cssClass}`;
     },
 
-    showTrumpSelection: function(show) {
-        if (show) this.el.trumpSelect.classList.remove('hidden');
-        else this.el.trumpSelect.classList.add('hidden');
+    // --- AANGEPAST: Ondersteuning voor Drentse modus ---
+    showTrumpSelection: function(show, mode = 'normal', proposedSuit = null) {
+        const overlay = this.el.trumpSelect;
+        const groupNormal = document.getElementById('controls-normal');
+        const groupDrents = document.getElementById('controls-drents');
+        const btnPass = document.getElementById('btn-pass');
+
+        if (!show) {
+            overlay.classList.add('hidden');
+            return;
+        }
+
+        overlay.classList.remove('hidden');
+        
+        if (mode === 'drents') {
+            // Toon Drentse knoppen (Speel / Pas) en verberg normale
+            if (groupNormal) groupNormal.classList.add('hidden');
+            if (groupDrents) groupDrents.classList.remove('hidden');
+            
+            // Update het icoontje in de knop
+            const s = Object.values(KJConfig.SUITS).find(x => x.id === proposedSuit);
+            const iconSpan = document.getElementById('drents-suit-icon');
+            
+            if(iconSpan && s) {
+                iconSpan.innerText = s.symbol;
+                // Reset classes en zet handmatig kleur (omdat classList replace complex kan zijn met icon logic)
+                iconSpan.style.color = (s.id === 'h' || s.id === 'd') ? '#d32f2f' : '#000';
+            }
+        } else {
+            // Toon Normale knoppen (4 suits / Pas) en verberg Drentse
+            if (groupDrents) groupDrents.classList.add('hidden');
+            if (groupNormal) groupNormal.classList.remove('hidden');
+        }
+        
+        // Pas knop altijd tonen
+        if(btnPass) btnPass.classList.remove('hidden');
+    },
+
+    // --- NIEUW: Toon de gedraaide kaart ---
+    showBidCard: function(cardData) {
+        const container = this.el['bid-card-container'];
+        const display = this.el['bid-card-display'];
+        
+        if (!container || !display) return;
+        
+        // Maak HTML voor de kaart
+        display.innerHTML = this.createCardHTML(cardData);
+        container.classList.remove('hidden');
+    },
+
+    // --- NIEUW: Verberg de gedraaide kaart ---
+    hideBidCard: function() {
+        const container = this.el['bid-card-container'];
+        if(container) container.classList.add('hidden');
     },
 
     updateActivePlayer: function(playerIndex) {
@@ -164,23 +221,36 @@ const KJUI = {
         }, 550);
     },
 
-    renderLastTrick: function(trick) {
+    renderLastTrick: function(trickData) {
         const overlay = document.getElementById('last-trick-overlay');
         const container = document.getElementById('last-trick-cards');
         
         if (!overlay || !container) return;
 
+        // Reset
         container.innerHTML = '';
-        // Deze namen kloppen met de windrichtingen (Zuid = Speler 0, etc.)
+        
+        // Verwijder oude details als die er nog staan
+        const oldDetails = document.getElementById('last-trick-details');
+        if (oldDetails) oldDetails.remove();
+
         const playerNames = ['ZUID', 'WEST', 'NOORD', 'OOST'];
 
-        trick.forEach(play => {
+        // 1. Render de kaarten
+        trickData.cards.forEach(play => {
             const itemWrapper = document.createElement('div');
             itemWrapper.className = 'last-trick-item';
+
+            // Markeer de winnaar visueel
+            const isWinner = (play.playerIndex === trickData.winnerIndex);
+            const nameColor = isWinner ? 'var(--accent-gold)' : '#ccc';
+            const fontWeight = isWinner ? 'bold' : 'normal';
 
             const nameLabel = document.createElement('span');
             nameLabel.className = 'last-trick-label';
             nameLabel.innerText = playerNames[play.playerIndex];
+            nameLabel.style.color = nameColor;
+            nameLabel.style.fontWeight = fontWeight;
 
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = this.createCardHTML(play.card);
@@ -190,11 +260,57 @@ const KJUI = {
             cardElement.style.transform = 'scale(0.85)';
             cardElement.style.margin = '0';
             
+            // Geef winnende kaart een gouden randje
+            if (isWinner) {
+                cardElement.style.boxShadow = "0 0 15px var(--accent-gold)";
+                cardElement.style.borderColor = "var(--accent-gold)";
+            }
+            
             itemWrapper.appendChild(nameLabel);
             itemWrapper.appendChild(cardElement);
-            
             container.appendChild(itemWrapper);
         });
+
+        // 2. Maak de puntentelling sectie
+        const detailsDiv = document.createElement('div');
+        detailsDiv.id = 'last-trick-details';
+        detailsDiv.style.marginTop = '20px';
+        detailsDiv.style.padding = '15px';
+        detailsDiv.style.background = 'rgba(0,0,0,0.3)';
+        detailsDiv.style.borderRadius = '8px';
+        detailsDiv.style.width = '100%';
+        detailsDiv.style.fontFamily = 'var(--font-body)';
+        detailsDiv.style.textAlign = 'left';
+
+        let roemHtml = '';
+        if (trickData.roem.total > 0) {
+            roemHtml = `
+                <div style="color:var(--accent-gold); margin-top:5px;">
+                    + Roem: <strong>${trickData.roem.total}</strong> 
+                    <span style="font-size:0.8em; opacity:0.8">(${trickData.roem.desc.join(', ')})</span>
+                </div>
+            `;
+        } else {
+            roemHtml = `<div style="color:#aaa; font-size:0.9em; margin-top:5px;">Geen roem</div>`;
+        }
+
+        detailsDiv.innerHTML = `
+            <div style="display:flex; justify-content:space-between; border-bottom:1px solid #555; padding-bottom:5px; margin-bottom:5px;">
+                <span>Kaartpunten:</span>
+                <strong>${trickData.points}</strong>
+            </div>
+            ${roemHtml}
+            <div style="display:flex; justify-content:space-between; border-top:2px solid #fff; padding-top:5px; margin-top:10px; font-size:1.2em;">
+                <span>TOTAAL:</span>
+                <span style="color:var(--accent-gold)">${trickData.points + trickData.roem.total}</span>
+            </div>
+            <div style="text-align:center; margin-top:10px; font-size:0.8em; color:#888;">
+                Gewonnen door: ${playerNames[trickData.winnerIndex]}
+            </div>
+        `;
+
+        const contentBox = document.querySelector('.last-trick-container');
+        contentBox.insertBefore(detailsDiv, contentBox.lastElementChild);
 
         overlay.classList.remove('hidden');
         overlay.onclick = () => overlay.classList.add('hidden');
@@ -229,12 +345,10 @@ const KJUI = {
         overlay.classList.remove('hidden');
     },
 
-    // --- CONFETTI OPTIMALISATIE ---
     startConfetti: function() {
         const canvas = this.el['confetti-canvas'];
         if (!canvas) return;
 
-        // Stop vorige loop indien aanwezig
         if (this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
         }
@@ -268,7 +382,6 @@ const KJUI = {
                 p.x += p.vx + Math.sin(p.y / 50);
                 p.spin += p.spinSpeed;
 
-                // Reset particle als hij beneden is (continue loop)
                 if (p.y > canvas.height) {
                     p.y = -20;
                     p.x = Math.random() * canvas.width;
@@ -297,6 +410,68 @@ const KJUI = {
         if(canvas) {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    },
+
+    // --- NIEUWE FUNCTIES VOOR TURFLIJST ---
+    
+    updateScoreSheet: function(history, totals) {
+        const tbody = document.querySelector('#score-table-body tbody');
+        const elTotalUs = document.getElementById('sheet-total-us');
+        const elTotalThem = document.getElementById('sheet-total-them');
+        
+        if(!tbody) return;
+
+        // Tabel leegmaken
+        tbody.innerHTML = '';
+
+        // Lijst vullen met rijen
+        if (history && history.length > 0) {
+            history.forEach(row => {
+                const tr = document.createElement('tr');
+                
+                let classUs = "";
+                let classThem = "";
+                let suffixUs = "";
+                let suffixThem = "";
+
+                // Markeringen toevoegen
+                if (row.type === 'PIT') {
+                    if (row.scoreUs > row.scoreThem) { classUs = "mark-pit"; suffixUs = " (P)"; }
+                    else { classThem = "mark-pit"; suffixThem = " (P)"; }
+                }
+                else if (row.type === 'NAT') {
+                    // Wie was er nat? De spelende partij had 0 punten over
+                    if (row.playingTeam === 'us') { classUs = "mark-nat"; suffixUs = " (Nat)"; }
+                    else { classThem = "mark-nat"; suffixThem = " (Nat)"; }
+                }
+
+                tr.innerHTML = `
+                    <td style="color:#aaa;">${row.round}</td>
+                    <td class="${classUs}">${row.scoreUs}${suffixUs}</td>
+                    <td class="${classThem}">${row.scoreThem}${suffixThem}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="3" style="padding:20px; color:#aaa;">Nog geen rondes gespeeld</td></tr>';
+        }
+
+        // Totalen onderaan bijwerken
+        if(elTotalUs) elTotalUs.innerText = totals.us;
+        if(elTotalThem) elTotalThem.innerText = totals.them;
+    },
+
+    toggleScoreSheet: function(show) {
+        const el = document.getElementById('score-sheet-overlay');
+        if (!el) return;
+
+        if(show) {
+            // Eerst updaten met de data uit Core
+            this.updateScoreSheet(KJCore.matchHistory, KJCore.matchPoints);
+            el.classList.remove('hidden');
+        } else {
+            el.classList.add('hidden');
         }
     }
 };

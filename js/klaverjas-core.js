@@ -3,6 +3,11 @@
  */
 
 const KJCore = {
+// Voeg dit toe bovenaan in KJCore object properties:
+    biddingMode: 'normal', // 'normal' of 'drents'
+    proposedSuit: null,    // De kleur van de gedraaide kaart
+    biddingRound: 1,       // 1 = vrijwillig, 2 = verplicht (na 4x pas in Drents)
+
     // SPEL STATUS
     deck: [],             
     hands: [[],[],[],[]], 
@@ -34,6 +39,11 @@ const KJCore = {
         this.tricksWon = [0, 0, 0, 0]; 
         this.trumpSuit = null;
         
+        // --- NIEUW: Reset Bidding State ---
+        this.proposedSuit = null;
+        this.biddingRound = 1; 
+        // ----------------------------------
+
         if (this.matchPoints.us === 0 && this.matchPoints.them === 0) {
             this.currentRound = 1;
         }
@@ -63,15 +73,21 @@ const KJCore = {
         this.hands.forEach(hand => this.sortHand(hand));
     },
 
-    sortHand: function(hand) {
-        const suitOrder = { 'h': 0, 'd': 1, 's': 2, 'c': 3 };
-        hand.sort((a, b) => {
-            if (suitOrder[a.suit] !== suitOrder[b.suit]) {
-                return suitOrder[a.suit] - suitOrder[b.suit];
-            }
-            return KJConfig.RANKS.indexOf(a.rank) - KJConfig.RANKS.indexOf(b.rank);
-        });
-    },
+// In js/klaverjas-core.js
+sortHand: function(hand) {
+    // OUD: { 'h': 0, 'd': 1, 's': 2, 'c': 3 } (Rood, Rood, Zwart, Zwart)
+    
+    // NIEUW: Om-en-om kleuren voor beter contrast
+    const suitOrder = { 'h': 0, 's': 1, 'd': 2, 'c': 3 }; 
+    
+    hand.sort((a, b) => {
+        if (suitOrder[a.suit] !== suitOrder[b.suit]) {
+            return suitOrder[a.suit] - suitOrder[b.suit];
+        }
+        // Sorteer Aas (index 7) als hoogste, 7 (index 0) als laagste
+        return KJConfig.RANKS.indexOf(a.rank) - KJConfig.RANKS.indexOf(b.rank);
+    });
+},
 
     checkHandRoem: function(playerIndex) {
         let totalRoem = 0;
@@ -109,21 +125,34 @@ const KJCore = {
         return totalRoem;
     },
 
-    // AANGEPAST: isValidMove met Amsterdam vs Rotterdam logica
-    isValidMove: function(card, playerIndex) {
+    // --- VERVANG DE OUDE isValidMove DOOR DEZE NIEUWE VALIDATIE ---
+
+    /**
+     * Controleert of een zet geldig is en geeft de reden terug als het niet mag.
+     * Gebaseerd op Fase 1 van het verbeterplan: Validatie Core Engine.
+     */
+    validateMove: function(card, playerIndex) {
         // 1. Is het wel jouw beurt?
-        if (playerIndex !== this.turnIndex) return false;
+        if (playerIndex !== this.turnIndex) {
+            return { valid: false, reason: "Wacht op je beurt." };
+        }
         
         // 2. Eerste kaart van de slag? Alles mag.
-        if (this.currentTrick.length === 0) return true;
+        if (this.currentTrick.length === 0) {
+            return { valid: true };
+        }
 
         const hand = this.hands[playerIndex];
-        const requestedSuit = this.currentTrick[0].card.suit; 
+        const firstCard = this.currentTrick[0].card;
+        const requestedSuit = firstCard.suit; 
         const hasRequested = hand.some(c => c.suit === requestedSuit);
 
         // 3. REGEL: Kleur bekennen gaat ALTIJD voor.
         if (hasRequested) {
-            return card.suit === requestedSuit;
+            if (card.suit !== requestedSuit) {
+                return { valid: false, reason: `Je moet ${KJConfig.SUITS[Object.keys(KJConfig.SUITS).find(k => KJConfig.SUITS[k].id === requestedSuit)].name} bekennen.` };
+            }
+            return { valid: true };
         }
 
         // Als we hier zijn, kun je niet bekennen. 
@@ -136,14 +165,14 @@ const KJCore = {
         const partnerIndex = (playerIndex + 2) % 4;
         const partnerHasSlag = (currentWinner.playerIndex === partnerIndex);
 
-        // --- HIER KOMT DE SPLITSING: AMSTERDAMS VS ROTTERDAMS ---
+        // --- HIER KOMT DE SPLITSING: AMSTERDAMS VS ROTTERDAMS [cite: 10] ---
         
-        // Situatie: Je hebt troeven. Moet je ze spelen?
         if (hasTrump) {
+            // Situatie: Je kunt niet bekennen, maar je hebt wel troef.
             
             // CHECK: Mag ik 'duiken' (niet troeven) omdat mijn maat de slag heeft?
-            // Bij Rotterdam: NEE, je moet altijd troeven.
-            // Bij Amsterdam: JA, als maat slag heeft, mag je alles gooien.
+            // Bij Rotterdam: NEE, je moet altijd troeven (introefplicht)[cite: 16].
+            // Bij Amsterdam: JA, als maat slag heeft, mag je alles gooien[cite: 15].
             
             const magDuiken = (this.ruleSet === 'amsterdam' && partnerHasSlag);
 
@@ -159,15 +188,17 @@ const KJCore = {
                 }
             });
 
-            // SCENARIO A: Er is nog NIET getroefd.
+            // SCENARIO A: Er is nog NIET getroefd in deze slag.
             if (!trumpPlayed) {
                 if (magDuiken) {
-                    // Amsterdams: Maat heeft m, er is niet getroefd -> Alles mag!
-                    return true;
+                    // Amsterdams & Maat heeft m -> Alles mag!
+                    return { valid: true };
                 } else {
                     // Rotterdams OF maat heeft hem niet -> Troefverplichting!
-                    if (card.suit !== this.trumpSuit) return false;
-                    return true;
+                    if (card.suit !== this.trumpSuit) {
+                        return { valid: false, reason: "Je moet introeven!" };
+                    }
+                    return { valid: true };
                 }
             }
 
@@ -183,12 +214,17 @@ const KJCore = {
                     // Je KUNT overtroeven.
                     if (magDuiken) {
                         // Amsterdams & Maat heeft slag -> Je hoeft niet over je maat heen.
-                        return true; 
+                        return { valid: true }; 
                     } else {
-                        // Rotterdams OF tegenstander heeft slag -> Je MOET overtroeven.
-                        if (card.suit !== this.trumpSuit) return false;
-                        if (KJConfig.VALUES_TRUMP[card.rank].strength <= highestTrumpStrength) return false;
-                        return true;
+                        // Rotterdams OF tegenstander heeft slag -> Je MOET overtroeven[cite: 16].
+                        if (card.suit !== this.trumpSuit) {
+                            return { valid: false, reason: "Je moet overtroeven!" };
+                        }
+                        // Je speelt wel troef, maar een te lage?
+                        if (KJConfig.VALUES_TRUMP[card.rank].strength <= highestTrumpStrength) {
+                            return { valid: false, reason: "Je moet een hogere troef spelen!" };
+                        }
+                        return { valid: true };
                     }
                 } else {
                     // Je kunt NIET overtroeven (je hebt alleen lage troeven).
@@ -198,19 +234,26 @@ const KJCore = {
                     
                     if (card.suit === this.trumpSuit) {
                         // Je probeert onder te troeven. Mag dat?
-                        // Alleen als je niet anders kan (geen andere kleuren).
-                        if (hasOtherSuits) return false; 
-                        return true; 
+                        // Alleen als je niet anders kan (geen andere kleuren)[cite: 16].
+                        if (hasOtherSuits) {
+                            return { valid: false, reason: "Je mag niet ondertroeven!" };
+                        } 
+                        return { valid: true }; 
                     } else {
                         // Je gooit een andere kleur (bijgooien).
-                        return true;
+                        return { valid: true };
                     }
                 }
             }
         }
 
         // Als je niet kunt bekennen en geen troef hebt, mag je alles gooien.
-        return true;
+        return { valid: true };
+    },
+    
+    // Behoud deze functie voor backward compatibility, maar laat hem verwijzen naar de nieuwe
+    isValidMove: function(card, playerIndex) {
+        return this.validateMove(card, playerIndex).valid;
     },
 
     playCard: function(cardIndex) {
@@ -246,30 +289,69 @@ const KJCore = {
 
     calculateScore: function(trick, isLastTrick = false) {
         let points = 0;
+        let details = []; // Voor debugging
+
         trick.forEach(play => {
             const c = play.card;
+            let p = 0;
             if (c.suit === this.trumpSuit) {
-                points += KJConfig.VALUES_TRUMP[c.rank].points;
+                p = KJConfig.VALUES_TRUMP[c.rank].points;
             } else {
-                points += KJConfig.VALUES_NORMAL[c.rank].points;
+                p = KJConfig.VALUES_NORMAL[c.rank].points;
             }
+            points += p;
+            if (p > 0) details.push(`${c.rank}${c.suit}=${p}`);
         });
-        if (isLastTrick) points += 10;
+
+        if (isLastTrick) {
+            points += 10;
+            details.push("Laatste Slag=+10");
+        }
+        
+        // Fase 1: Foutdetectie en Logging 
+        console.log(`🧮 Slag punten: ${points} (${details.join(', ')})`);
+        
         return points;
     },
 
+/**
+     * Berekent roem op basis van kaarten OP TAFEL (Jouw Variant).
+     * Regels: 
+     * - Stuk (20): Heer + Vrouw van troef in de slag (ongeacht wie speelt).
+     * - Reeksen: 3 of 4 opeenvolgende kaarten van 1 kleur in de slag.
+     */
     calculateRoem: function(trick) {
         let roemPoints = 0;
+        let descriptions = []; 
+        // We kijken alleen naar de kaarten in de slag (op tafel), niet naar de hand
         const cards = trick.map(p => p.card);
 
+        // 1. Check STUK (Heer + Vrouw van Troef) 
+        // We gebruiken .some(), dus het maakt niet uit wie ze gegooid heeft
         const hasTrumpKing = cards.some(c => c.rank === 'K' && c.suit === this.trumpSuit);
         const hasTrumpQueen = cards.some(c => c.rank === 'Q' && c.suit === this.trumpSuit);
-        if (hasTrumpKing && hasTrumpQueen) roemPoints += 20;
+        
+        if (hasTrumpKing && hasTrumpQueen) {
+            roemPoints += 20;
+            descriptions.push("Stuk (20)");
+        }
 
+        // 2. Check CARRÉ (4 gelijke kaarten op tafel)
         const firstRank = cards[0].rank;
         const isCarre = cards.every(c => c.rank === firstRank);
-        if (isCarre) return roemPoints + 100;
+        
+        if (isCarre) {
+            if (firstRank === 'J') {
+                roemPoints += 200;
+                descriptions.push("4 Boeren (200)");
+            } else {
+                roemPoints += 100;
+                descriptions.push(`4 x ${firstRank} (100)`);
+            }
+            return { total: roemPoints, desc: descriptions };
+        }
 
+        // 3. Check REEKSEN (3 of 4 opeenvolgend in dezelfde kleur op tafel)
         const suits = {};
         cards.forEach(c => {
             if (!suits[c.suit]) suits[c.suit] = [];
@@ -277,26 +359,40 @@ const KJCore = {
         });
 
         Object.values(suits).forEach(suitCards => {
+            // Er moeten minimaal 3 kaarten van dezelfde kleur op tafel liggen
             if (suitCards.length >= 3) {
+                // Sorteer ze op volgorde (7,8,9,10,J,Q,K,A)
                 suitCards.sort((a, b) => KJConfig.RANKS.indexOf(a.rank) - KJConfig.RANKS.indexOf(b.rank));
+                
                 let consecutive = 1; 
                 let maxConsecutive = 1;
+                
                 for (let i = 0; i < suitCards.length - 1; i++) {
                     const idxCurrent = KJConfig.RANKS.indexOf(suitCards[i].rank);
                     const idxNext = KJConfig.RANKS.indexOf(suitCards[i+1].rank);
-                    if (idxNext === idxCurrent + 1) consecutive++;
-                    else consecutive = 1;
+                    
+                    if (idxNext === idxCurrent + 1) {
+                        consecutive++;
+                    } else {
+                        consecutive = 1;
+                    }
                     if (consecutive > maxConsecutive) maxConsecutive = consecutive;
                 }
-                if (maxConsecutive === 3) roemPoints += 20;
-                if (maxConsecutive === 4) roemPoints += 50;
+
+                if (maxConsecutive === 3) {
+                    roemPoints += 20;
+                    descriptions.push("Drieluik (20)");
+                } else if (maxConsecutive === 4) {
+                    roemPoints += 50;
+                    descriptions.push("Vierluik (50)");
+                }
             }
         });
 
-        return roemPoints;
+        return { total: roemPoints, desc: descriptions };
     },
 
-    resolveRound: function(playingTeam) {
+resolveRound: function(playingTeam) {
         // 1. Punten tellen
         let scorePlaying = (playingTeam === 'us') ? this.points.us : this.points.them;
         let scoreDefending = (playingTeam === 'us') ? this.points.them : this.points.us;
@@ -322,6 +418,19 @@ const KJCore = {
             resultType = 'NAT';
         }
 
+        // --- NIEUW: Opslaan in geschiedenis ---
+        // Zorg dat matchHistory bestaat (veiligheid)
+        if (!this.matchHistory) this.matchHistory = [];
+        
+        this.matchHistory.push({
+            round: this.currentRound,
+            scoreUs: this.points.us,
+            scoreThem: this.points.them,
+            type: resultType,
+            playingTeam: playingTeam
+        });
+        // --------------------------------------
+
         // 4. Totaalscore bijwerken
         this.matchPoints.us += this.points.us;
         this.matchPoints.them += this.points.them;
@@ -335,5 +444,5 @@ const KJCore = {
             totalScore: { ...this.matchPoints },
             nextRoundNumber: this.currentRound 
         };
-    }
+    },
 };

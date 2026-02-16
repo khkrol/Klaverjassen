@@ -30,18 +30,25 @@
 
 * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 
+/* In css/global.css */
+
 body {
     margin: 0;
     font-family: var(--font-body);
     background-color: var(--bg-dark);
     color: var(--text-main);
-    height: 100vh;
-    overflow: hidden;
+    
+    /* --- HIER IS DE FIX --- */
+    height: 100vh;       /* Fallback voor hele oude telefoons */
+    height: 100dvh;      /* Dynamic Viewport Height: Past zich aan als de adresbalk verdwijnt! */
+    /* ---------------------- */
+
+    overflow: hidden;    /* Zorgt dat je niet per ongeluk kunt scrollen */
     display: flex;
     justify-content: center;
     align-items: center;
     
-    /* Achtergrondafbeelding donkerder gemaakt voor leesbaarheid */
+    /* Achtergrondafbeelding... */
     background: 
         linear-gradient(rgba(20, 10, 5, 0.6), rgba(20, 10, 5, 0.6)),
         url('../img/hoofdstijl.jpg') no-repeat center center/cover;
@@ -132,3 +139,4 @@ body {
     text-shadow: none !important;
     box-shadow: 0 0 15px rgba(255, 193, 7, 0.6) !important;
 }
+
