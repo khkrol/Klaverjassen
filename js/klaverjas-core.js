@@ -73,7 +73,6 @@ const KJCore = {
         this.hands.forEach(hand => this.sortHand(hand));
     },
 
-// In js/klaverjas-core.js
 sortHand: function(hand) {
     // OUD: { 'h': 0, 'd': 1, 's': 2, 'c': 3 } (Rood, Rood, Zwart, Zwart)
     

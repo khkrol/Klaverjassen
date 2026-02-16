@@ -144,17 +144,24 @@ const KJUI = {
         if(btnPass) btnPass.classList.remove('hidden');
     },
 
-    // --- NIEUW: Toon de gedraaide kaart ---
+// In KJUI object...
+
+// AANGEPAST: Geen inline styles meer die conflicteren met CSS
     showBidCard: function(cardData) {
-        const container = this.el['bid-card-container'];
-        const display = this.el['bid-card-display'];
-        
-        if (!container || !display) return;
-        
-        // Maak HTML voor de kaart
-        display.innerHTML = this.createCardHTML(cardData);
-        container.classList.remove('hidden');
-    },
+    const container = this.el['bid-card-container'];
+    const display = this.el['bid-card-display'];
+    
+    if (!container || !display) return;
+    
+    // Reset transformaties in JS, laat CSS het werk doen
+    display.style.transform = ''; 
+    
+    // Maak HTML voor de kaart
+    display.innerHTML = this.createCardHTML(cardData);
+    
+    // Direct tonen
+    container.classList.remove('hidden');
+},
 
     // --- NIEUW: Verberg de gedraaide kaart ---
     hideBidCard: function() {

@@ -4,7 +4,7 @@
  */
 const KJConfig = {
     // Suits met CSS klassen voor de kleuren
-    ROUNDS_PER_GAME: 16, // <--- NIEUW: Een boompje is 16 rondes
+    ROUNDS_PER_GAME: 4, // <--- NIEUW: Een boompje is 16 rondes
     SUITS: {
         HEARTS:   { id: 'h', symbol: '♥', cssClass: 'suit-red',   name: 'Harten' },
         DIAMONDS: { id: 'd', symbol: '♦', cssClass: 'suit-red',   name: 'Ruiten' },

@@ -545,27 +545,66 @@ onCardClick: function(cardIndex) {
         }
     },
 
-    finalizeRound: function() {
-        const result = KJCore.resolveRound(this.playingTeam);
-        const isGameOver = result.nextRoundNumber > KJConfig.ROUNDS_PER_GAME;
+// In KlaverjasMain object...
 
-        KJUI.updateRound(Math.min(result.nextRoundNumber, KJConfig.ROUNDS_PER_GAME));
-        KJUI.showMessage("Einde Ronde", 0);
+finalizeRound: function() {
+    const result = KJCore.resolveRound(this.playingTeam);
+    const isGameOver = result.nextRoundNumber > KJConfig.ROUNDS_PER_GAME;
 
-        setTimeout(() => {
-            if (isGameOver) {
-                KJUI.showGameOverScreen(result.totalScore);
-                this.setupGameOverButtons(result.totalScore);
-            } else {
-                let msgTitle = result.type === 'NAT' ? "NAT!" : (result.type.includes('PIT') ? "PIT!" : "Ronde Voorbij");
-                const fullMsg = `${msgTitle}\nWij: ${result.roundScore.us} - Zij: ${result.roundScore.them}\nTotaal: Wij ${result.totalScore.us} - Zij ${result.totalScore.them}`;
-                
-                if (confirm(fullMsg + "\n\nVolgende ronde?")) {
-                    this.startGame(false); // <--- FALSE: Dit is een vervolgronde!
-                }
-            }
-        }, 1500);
-    },
+    // Update de UI teller
+    KJUI.updateRound(Math.min(result.nextRoundNumber, KJConfig.ROUNDS_PER_GAME));
+    KJUI.showMessage("Einde Ronde", 0);
+
+    setTimeout(() => {
+        if (isGameOver) {
+            // Einde spel scenario
+            KJUI.showGameOverScreen(result.totalScore);
+            this.setupGameOverButtons(result.totalScore);
+        } else {
+            // Tussentijdse ronde scenario (NIEUW)
+            this.showRoundEndScreen(result);
+        }
+    }, 1000);
+},
+
+// NIEUWE FUNCTIE: Toon de mooie ronde popup
+showRoundEndScreen: function(result) {
+    const overlay = document.getElementById('round-end-overlay');
+    const btnNext = document.getElementById('btn-next-round');
+    
+    // Vul de data in
+    document.getElementById('re-score-us').innerText = "+" + result.roundScore.us;
+    document.getElementById('re-score-them').innerText = "+" + result.roundScore.them;
+    document.getElementById('re-total-us').innerText = result.totalScore.us;
+    document.getElementById('re-total-them').innerText = result.totalScore.them;
+    
+    // Bepaal titel en bericht (Pit/Nat)
+    const titleEl = document.getElementById('re-title');
+    const msgEl = document.getElementById('re-message');
+    
+    if (result.type === 'NAT') {
+        titleEl.innerText = "NAT! 💦";
+        titleEl.style.color = "#ef5350"; // Rood
+        msgEl.innerText = "De punten gaan naar de tegenstander.";
+    } else if (result.type === 'PIT') {
+        titleEl.innerText = "PIT! 🔥";
+        titleEl.style.color = "#ffca28"; // Goud
+        msgEl.innerText = "Alle slagen gewonnen! (+100 punten)";
+    } else {
+        titleEl.innerText = "RONDE VOORBIJ";
+        titleEl.style.color = "var(--accent-gold)";
+        msgEl.innerText = "";
+    }
+
+    // Toon scherm
+    overlay.classList.remove('hidden');
+
+    // Knop functionaliteit (éénmalig binden of old-school onclick resetten)
+    btnNext.onclick = () => {
+        overlay.classList.add('hidden');
+        this.startGame(false); // Start volgende ronde
+    };
+},
     
     setupGameOverButtons: function(totalScore) {
         const btnSave = document.getElementById('btn-save-score');
