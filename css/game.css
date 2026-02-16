@@ -1,4 +1,4 @@
-/* game.css - Bruine Kroeg Editie - CLEAN LAYOUT + CORNER INDICES FIX */
+/* game.css - Bruine Kroeg Editie - CLEAN LAYOUT + SMOOTH TRANSITIONS */
 
 /* =========================================
    1. MENU 
@@ -10,10 +10,10 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 20px; /* Iets minder padding voor meer ruimte */
+    padding: 20px;
     text-align: center;
-    height: 100%;      /* Zorgt dat het paneel niet groter wordt dan het glas */
-    overflow: hidden;  /* Alles wat uitsteekt wordt afgekapt */
+    height: 100%;
+    overflow: hidden;
     box-sizing: border-box;
 }
 
@@ -128,33 +128,70 @@
 }
 .icon-btn-small:hover { color: var(--accent-gold); }
 
+/* STATUS BALK */
+.status-bar {
+    width: 100%;
+    background-color: rgba(40, 24, 21, 0.95);
+    color: var(--accent-gold);
+    font-family: var(--font-heading);
+    text-align: center;
+    padding: 8px 0;
+    font-size: 1.1em;
+    border-bottom: 2px solid #5d4037;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    z-index: 90;
+    transition: all 0.3s ease;
+    min-height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.toast { display: none !important; }
+
 /* =========================================
-   3. TAFEL & SPELERS (HOUTEN TAFEL)
+   3. TAFEL & SPELERS (AANGEPAST VOOR GROOTTE)
    ========================================= */
 
 .table-container {
     flex: 1;
     display: flex;
     justify-content: center;
-    align-items: center;
+    /* We veranderen align-items van 'center' naar 'flex-start' 
+       zodat we zelf kunnen bepalen hoe hoog hij staat met padding */
+    align-items: center; 
+    
     position: relative;
-    overflow: hidden;
     perspective: 1000px;
+    z-index: 10;
+    
+    /* Zorgt dat het 'midden' iets naar boven verschuift */
+    padding-bottom: 80px; 
+    
+    background: radial-gradient(circle at center, rgba(93, 64, 55, 0.3) 0%, rgba(42, 27, 14, 0.6) 60%, rgba(30, 20, 10, 0.9) 100%);
 }
 
 .klaverjas-table {
-    width: 90%;
+    /* GROTERE TAFEL */
+    width: 95%;          /* Was 85% - Neemt nu bijna de volle breedte op mobiel */
+    max-width: 58vh;     /* Was 45vh - Aanzienlijk groter op desktop/tablet */
     aspect-ratio: 1/1;
-    max-height: 50vh;
     border-radius: 50%;
+    
+    /* OMHOOG SCHUIVEN */
+    margin-top: -30px;   /* Trekt de tafel dichter naar het scorebord */
     
     background: radial-gradient(circle, #8d6e63 0%, #4e342e 60%, #3e2723 100%);
     background-size: 100% 100%;
     
-    border: 8px solid #281815;
+    border: 10px solid #281815;
+    
     box-shadow: 
-        inset 0 0 80px rgba(0,0,0,0.9),
-        0 30px 60px rgba(0,0,0,0.6);
+        inset 0 0 60px rgba(0,0,0,0.9),
+        0 60px 100px rgba(0,0,0,0.8), 
+        0 0 0 1px rgba(255,255,255,0.05);
+        
     position: relative;
 }
 
@@ -169,7 +206,7 @@
     filter: blur(20px);
 }
 
-/* --- Speler Stijl (Bierviltjes) --- */
+/* --- Speler Stijl --- */
 .player {
     position: absolute;
     display: flex;
@@ -198,12 +235,8 @@
     box-shadow: 0 4px 8px rgba(0,0,0,0.4);
 }
 
-/* Tekstlabels verborgen */
-.p-name {
-    display: none; 
-}
+.p-name { display: none; }
 
-/* Actieve speler: Gouden rand */
 .active-turn .avatar {
     border-color: var(--accent-gold);
     box-shadow: 0 0 20px rgba(255, 193, 7, 0.6);
@@ -213,12 +246,12 @@
 
 /* Posities */
 .p-top { top: 10px; left: 50%; transform: translateX(-50%); }
-.p-bottom { bottom: 25px; left: 50%; transform: translateX(-50%); }
+.p-bottom { bottom: 15px; left: 50%; transform: translateX(-50%); } 
 .p-left { left: 10px; top: 50%; transform: translateY(-50%); }
 .p-right { right: 10px; top: 50%; transform: translateY(-50%); }
 
 /* =========================================
-   4. KAARTEN (LINKS-BOVEN & RECHTS-ONDER FIX)
+   4. KAARTEN
    ========================================= */
 
 .card-modern {
@@ -232,13 +265,10 @@
     box-shadow: 1px 2px 4px rgba(0,0,0,0.3);
     border: 1px solid #dcdcdc;
     overflow: hidden;
-    
-    /* AANPASSING: Position relative voor de hoekjes, geen flexbox meer */
     position: relative;
     display: block; 
 }
 
-/* De Waarde (Cijfer + Klein symbool) */
 .card-value {
     font-weight: 700;
     font-size: 1.4em;
@@ -246,8 +276,6 @@
     z-index: 2;
     text-align: center;
     letter-spacing: -1px;
-    
-    /* AANPASSING: Absolute positie: Standaard LINKS-BOVEN */
     position: absolute;
     top: 3px;
     left: 4px;
@@ -259,23 +287,17 @@
     margin-top: -2px;
 }
 
-/* De onderste waarde (RECHTS-ONDER) */
 .card-corner-btm {
-    /* Reset de top/left waarden */
     top: auto;
     left: auto;
-    
-    /* Zet hem rechtsonder */
     bottom: 3px;
     right: 4px;
-    
     transform: rotate(180deg);
 }
 
 .suit-red { color: #a61212; text-shadow: 0 1px 0 rgba(255,200,200,0.5); }
 .suit-black { color: #1a1a1a; text-shadow: 0 1px 0 rgba(200,200,200,0.5); }
 
-/* Het grote watermerk in het midden */
 .card-suit-big {
     position: absolute;
     top: 50%; left: 50%;
@@ -283,19 +305,37 @@
     font-size: 3.2em;
     opacity: 0.2;
     filter: sepia(100%);
-    pointer-events: none; /* Klik er doorheen */
+    pointer-events: none;
 }
 
 /* =========================================
-   5. SPELER HAND & ACTIES
+   5. SPELER HAND & ACTIES (AANGEPAST)
    ========================================= */
 
 .bottom-section {
-    height: 160px;
-    /* Position relative VERWIJDERD voor de popup fix */
+    position: absolute;  /* Vastzetten t.o.v. het spelvenster */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 240px;       /* Hoog genoeg voor een zacht verloop */
+    
     display: flex;
     justify-content: center;
-    z-index: 50;
+    align-items: flex-end; 
+    
+    /* Zorgt dat dit over de onderkant van de tafel valt */
+    z-index: 40; 
+    
+    /* Het verloop: Diep donkerbruin onderin -> Volledig transparant bovenin */
+    background: linear-gradient(
+        to top, 
+        #120b08 0%,        /* Bijna zwart (koffiekleur) aan de rand */
+        #1a100c 40%,       /* Donkerbruin achter de kaarten */
+        rgba(26, 16, 12, 0) 100% /* Zachte, onzichtbare overgang naar boven */
+    );
+    
+    /* BELANGRIJK: Zorgt dat je 'door' de transparante lucht heen kunt klikken */
+    pointer-events: none; 
 }
 
 .player-hand-wrapper {
@@ -309,7 +349,10 @@
     align-items: flex-end;
     justify-content: center;
     height: 100%;
-    padding-bottom: 15px;
+    padding-bottom: 20px;
+    
+    /* BELANGRIJK: Herstelt de klikbaarheid van de kaarten */
+    pointer-events: auto; 
 }
 
 .hand-card {
@@ -326,125 +369,128 @@
     z-index: 100;
 }
 
-/* --- AANGEPAST: Ongeldige kaarten stijl (Transparant) --- */
 .card-disabled {
-    opacity: 0.5;                     /* Maakt de kaart 50% doorzichtig */
-    transform: scale(0.9) !important; /* Maakt de kaart 10% kleiner */
-    cursor: not-allowed !important;   /* Verbodsicoontje als muis */
-    filter: brightness(0.9);          /* Iets donkerder, maar WEL met kleur! */
-    pointer-events: none;             /* Zorgt dat je er niet op kunt klikken */
-    border: 1px dashed #999;          /* Optioneel: stippellijntje om aan te geven 'niet nu' */
+    opacity: 0.5;
+    transform: scale(0.9) !important;
+    cursor: not-allowed !important;
+    filter: brightness(0.9);
+    pointer-events: none;
+    border: 1px dashed #999;
 }
 
-/* Troef Kiezer: MIDDEN van het scherm */
+/* =========================================
+   FIXED TROEF SELECTIE BALK
+   ========================================= */
+
 #trump-selection.action-overlay {
+    /* POSITIE: Vast bovenin, onder de scorebalk */
     position: absolute;
-    top: 45%; 
-    left: 50%;
-    transform: translate(-50%, -50%); 
+    top: 60px; /* Hoogte van de top-bar (ongeveer) */
+    left: 0;
+    width: 100%;
+    height: 55px;
     
-    background: radial-gradient(circle, #5d4037, #3e2723);
-    border: 4px solid #8d6e63;
-    padding: 15px 25px;
-    border-radius: 40px;
+    /* STIJL: Een donkere balk, net als de statusbalk */
+    background-color: rgba(40, 24, 21, 0.98); 
+    border-bottom: 2px solid #5d4037;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     
-    box-shadow: 
-        0 10px 30px rgba(0,0,0,0.8), 
-        inset 0 0 20px rgba(0,0,0,0.5);
-        
-    z-index: 1000;
+    /* LAYOUT: Knoppen netjes op een rij */
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: auto;
-    min-width: 250px;
-    text-align: center;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    padding: 0;
+    
+    /* ZORG DAT HET WERKT: Bovenop alles liggen! */
+    z-index: 3000 !important; 
+    pointer-events: auto !important;
+    
+    /* Verberg de oude titeltekst in de popup als die er nog is */
+    animation: slideInTop 0.3s ease-out;
 }
 
-/* Dubbele tekst verwijderd */
+/* Verberg de tekst 'Kies Troef' in deze balk, de symbolen zeggen genoeg */
+#trump-selection h2, 
 #trump-selection .action-title {
     display: none; 
 }
 
-.action-title {
-    font-family: var(--font-heading);
-    font-size: 1.4em;
-    color: var(--accent-gold);
-    text-shadow: 2px 2px 0 #000;
-    margin-bottom: 5px;
-    display: block;
+@keyframes slideInTop {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
+/* --- DE KNOPPEN (SYMBOLEN) --- */
 .trump-grid {
     display: flex;
-    justify-content: center;
     gap: 15px;
+    margin: 0;
 }
 
 .suit-btn {
+    width: 40px; 
+    height: 40px;
+    border-radius: 50%;
+    
+    /* Standaard wit/grijs verloopje */
     background: radial-gradient(circle at 30% 30%, #fff, #e0e0e0);
     border: 2px solid #bcaaa4;
-    border-radius: 50%;
-    width: 55px; height: 55px;
     
-    font-size: 2em;
-    cursor: pointer;
-    
-    box-shadow: 
-        0 4px 6px rgba(0,0,0,0.4),
-        inset -2px -2px 5px rgba(0,0,0,0.2);
-    
-    transition: transform 0.1s;
+    font-size: 1.5em;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding-top: 5px;
-}
-
-.suit-btn:active {
-    transform: scale(0.95);
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
-}
-
-.suit-btn.h, .suit-btn.d { color: #c62828; text-shadow: 0 1px 0 rgba(255,255,255,0.8); }
-.suit-btn.s, .suit-btn.c { color: #212121; text-shadow: 0 1px 0 rgba(255,255,255,0.8); }
-
-#btn-pass {
-    background: rgba(0,0,0,0.2); 
-    border: 1px solid #8d6e63;
-    border-radius: 20px;
-    padding: 6px 20px;
-    color: var(--text-muted);
-    font-family: var(--font-body);
-    font-weight: bold;
-    font-size: 0.9em;
     cursor: pointer;
-    margin-top: 0;
-    text-decoration: none;
-    align-self: center; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    transition: transform 0.1s;
+    
+    /* Standaard Zwart */
+    color: #212121 !important; 
 }
-#btn-pass:hover {
-    color: #fff;
-    background: rgba(0,0,0,0.4);
+
+.suit-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
     border-color: var(--accent-gold);
 }
 
-/* Toast/Meldingen */
-.toast {
-    position: absolute;
-    top: 18%; 
-    left: 50%;
-    transform: translate(-50%, -50%);
-    
-    background: rgba(245, 245, 220, 0.95); 
-    color: var(--text-dark);
-    border: 1px solid var(--bg-wood);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-family: var(--font-heading);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    z-index: 200;
-    pointer-events: none;
+/* --- KLEUREN HERSTELLEN (Forceer Rood) --- */
+/* We gebruiken :nth-child om zeker te zijn, aannemende volgorde: Harten, Ruiten, Schoppen, Klaver */
+
+/* 1e knop (Harten) & 2e knop (Ruiten) -> ALTIJD ROOD */
+.suit-btn:nth-child(1),
+.suit-btn:nth-child(2) {
+    color: #d32f2f !important;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+}
+
+/* Ook nog de classes voor de zekerheid */
+.suit-btn.h, .suit-btn.d {
+    color: #d32f2f !important;
+}
+
+/* --- PAS KNOP --- */
+#btn-pass {
+    height: 36px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid #8d6e63;
+    color: #ccc;
+    font-weight: bold;
+    border-radius: 18px;
+    padding: 0 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+#btn-pass:hover {
+    background: #c62828;
+    color: white;
+    border-color: #e57373;
 }
 
 /* Kaart Animaties op Tafel */
@@ -460,33 +506,13 @@
 .fly-in-left   { transform: translate(-400px, -50%); }
 .fly-in-right  { transform: translate(400px, -50%); }
 
-/* SPREIDING en POSITIE op tafel */
-.on-table-bottom { 
-    top: 65%; 
-    left: 50%; 
-    transform: translate(-50%, -50%); 
-}
-
-.on-table-top { 
-    top: 35%; 
-    left: 50%; 
-    transform: translate(-50%, -50%); 
-}
-
-.on-table-left { 
-    top: 50%; 
-    left: 35%; 
-    transform: translate(-50%, -50%); 
-}
-
-.on-table-right { 
-    top: 50%; 
-    left: 65%; 
-    transform: translate(-50%, -50%); 
-}
+.on-table-bottom { top: 65%; left: 50%; transform: translate(-50%, -50%); }
+.on-table-top    { top: 35%; left: 50%; transform: translate(-50%, -50%); }
+.on-table-left   { top: 50%; left: 35%; transform: translate(-50%, -50%); }
+.on-table-right  { top: 50%; left: 65%; transform: translate(-50%, -50%); }
 
 /* =========================================
-   6. OVERLAYS (Vorige Slag & Popups)
+   6. OVERLAYS
    ========================================= */
 
 #last-trick-overlay {
@@ -550,12 +576,11 @@
     font-family: var(--font-body);
 }
 
-/* --- NIEUW: Styling voor Vorige Slag met Namen --- */
 .last-trick-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px; /* Ruimte tussen naam en kaart */
+    gap: 8px;
 }
 
 .last-trick-label {
@@ -565,8 +590,6 @@
     text-shadow: 1px 1px 2px #000;
     letter-spacing: 1px;
 }
-
-/* --- NIEUW: Ronde Teller & Game Over --- */
 
 .round-indicator {
     background: rgba(0,0,0,0.4);
@@ -628,7 +651,9 @@
     font-family: var(--font-heading);
 }
 
-/* --- NIEUW: Leaderboard Styling --- */
+/* =========================================
+   7. LEADERBOARD
+   ========================================= */
 
 .leaderboard-container {
     background: rgba(0,0,0,0.3);
@@ -699,13 +724,12 @@
     color: var(--accent-gold);
 }
 
-/* Goud, Zilver, Brons accenten */
 .rank-1 { background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); border-left: 4px solid gold; }
 .rank-2 { background: linear-gradient(90deg, rgba(192,192,192,0.2), transparent); border-left: 4px solid silver; }
 .rank-3 { background: linear-gradient(90deg, rgba(205,127,50,0.2), transparent); border-left: 4px solid #cd7f32; }
 
 /* =========================================
-   7. SPELREGELS (NIEUW)
+   8. SPELREGELS & SETTINGS
    ========================================= */
 
 .rules-container {
@@ -713,16 +737,13 @@
     border: 2px solid var(--bg-wood-light);
     border-radius: 10px;
     width: 100%;
-    
-    /* FLEXBOX MAGIC - CORRECIE */
-    flex: 1;           /* Neem resterende ruimte in */
-    min-height: 0;     /* CRUCIAAL: Zorgt dat de container kan krimpen voor de scrollbalk */
-    
-    overflow-y: auto;  /* Scrollbaar maken */
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
     padding: 15px;
     box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
     text-align: left;
-    margin-bottom: 10px; /* Zorgt voor afstand tot de knop */
+    margin-bottom: 10px;
 }
 
 .rules-content h3 {
@@ -747,11 +768,8 @@
     list-style-type: square;
 }
 
-.rules-list li::marker {
-    color: var(--accent-gold);
-}
+.rules-list li::marker { color: var(--accent-gold); }
 
-/* Tabel Styling */
 .rules-table {
     width: 100%;
     border-collapse: collapse;
@@ -773,11 +791,20 @@
 
 .rules-table tr:last-child td { border-bottom: none; }
 
-/* Actieve knop in instellingen */
 .btn-active {
     background: var(--accent-gold) !important;
     color: #3e2723 !important;
     border-color: #fff !important;
     font-weight: bold;
     box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+}
+
+#confetti-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2000;
 }

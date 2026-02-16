@@ -1,5 +1,5 @@
 /**
- * KLAVERJAS CORE (VERSIE 2.3 - MET HAND-ROEM DETECTIE)
+ * KLAVERJAS CORE (VERSIE 2.5 - MET AMSTERDAM/ROTTERDAM REGELS)
  */
 
 const KJCore = {
@@ -12,7 +12,10 @@ const KJCore = {
     turnIndex: 0,         
     dealerIndex: 3,
     
-    // NIEUW: Ronde teller
+    // NIEUW: De actieve regelset (standaard rotterdam)
+    ruleSet: 'rotterdam',
+
+    // Ronde teller
     currentRound: 1,      
 
     // PUNTEN STATUS
@@ -31,8 +34,6 @@ const KJCore = {
         this.tricksWon = [0, 0, 0, 0]; 
         this.trumpSuit = null;
         
-        // NIEUW: Bij start van het spel, begin bij ronde 1 (tenzij het een herstart is in een boompje)
-        // We resetten currentRound alleen als matchPoints ook 0 is (volledig nieuw spel)
         if (this.matchPoints.us === 0 && this.matchPoints.them === 0) {
             this.currentRound = 1;
         }
@@ -72,14 +73,11 @@ const KJCore = {
         });
     },
 
-    /**
-     * NIEUW: Controleert op roem in de volledige hand (bijv. aan het begin van het spel)
-     */
     checkHandRoem: function(playerIndex) {
         let totalRoem = 0;
         const hand = [...this.hands[playerIndex]];
         
-        // 1. Carré (Vier dezelfde kaarten)
+        // 1. Carré
         const counts = {};
         hand.forEach(c => counts[c.rank] = (counts[c.rank] || 0) + 1);
         for (let rank in counts) {
@@ -88,7 +86,7 @@ const KJCore = {
             }
         }
 
-        // 2. Reeksen (Drieluik/Vierluik)
+        // 2. Reeksen
         const suits = { 'h': [], 'd': [], 's': [], 'c': [] };
         hand.forEach(c => suits[c.suit].push(KJConfig.RANKS.indexOf(c.rank)));
         
@@ -111,46 +109,107 @@ const KJCore = {
         return totalRoem;
     },
 
+    // AANGEPAST: isValidMove met Amsterdam vs Rotterdam logica
     isValidMove: function(card, playerIndex) {
+        // 1. Is het wel jouw beurt?
         if (playerIndex !== this.turnIndex) return false;
+        
+        // 2. Eerste kaart van de slag? Alles mag.
         if (this.currentTrick.length === 0) return true;
 
         const hand = this.hands[playerIndex];
         const requestedSuit = this.currentTrick[0].card.suit; 
-
         const hasRequested = hand.some(c => c.suit === requestedSuit);
+
+        // 3. REGEL: Kleur bekennen gaat ALTIJD voor.
         if (hasRequested) {
             return card.suit === requestedSuit;
         }
 
+        // Als we hier zijn, kun je niet bekennen. 
+        // Nu wordt het interessant: Moet je troeven?
+
         const hasTrump = hand.some(c => c.suit === this.trumpSuit);
+        
+        // Wie wint de slag OP DIT MOMENT?
         const currentWinner = this.getTrickWinner(this.currentTrick);
         const partnerIndex = (playerIndex + 2) % 4;
         const partnerHasSlag = (currentWinner.playerIndex === partnerIndex);
 
+        // --- HIER KOMT DE SPLITSING: AMSTERDAMS VS ROTTERDAMS ---
+        
+        // Situatie: Je hebt troeven. Moet je ze spelen?
         if (hasTrump) {
+            
+            // CHECK: Mag ik 'duiken' (niet troeven) omdat mijn maat de slag heeft?
+            // Bij Rotterdam: NEE, je moet altijd troeven.
+            // Bij Amsterdam: JA, als maat slag heeft, mag je alles gooien.
+            
+            const magDuiken = (this.ruleSet === 'amsterdam' && partnerHasSlag);
+
+            // Wat is de hoogste troef op tafel?
             let highestTrumpStrength = -1;
+            let trumpPlayed = false;
+            
             this.currentTrick.forEach(p => {
                 if (p.card.suit === this.trumpSuit) {
+                    trumpPlayed = true;
                     const str = KJConfig.VALUES_TRUMP[p.card.rank].strength;
                     if (str > highestTrumpStrength) highestTrumpStrength = str;
                 }
             });
 
-            if (!partnerHasSlag) {
-                if (card.suit !== this.trumpSuit) return false; 
+            // SCENARIO A: Er is nog NIET getroefd.
+            if (!trumpPlayed) {
+                if (magDuiken) {
+                    // Amsterdams: Maat heeft m, er is niet getroefd -> Alles mag!
+                    return true;
+                } else {
+                    // Rotterdams OF maat heeft hem niet -> Troefverplichting!
+                    if (card.suit !== this.trumpSuit) return false;
+                    return true;
+                }
+            }
 
+            // SCENARIO B: Er is AL WEL getroefd.
+            else {
+                // Kan ik overtroeven?
                 const canOverTrump = hand.some(c => 
                     c.suit === this.trumpSuit && 
                     KJConfig.VALUES_TRUMP[c.rank].strength > highestTrumpStrength
                 );
 
                 if (canOverTrump) {
-                    return KJConfig.VALUES_TRUMP[card.rank].strength > highestTrumpStrength;
+                    // Je KUNT overtroeven.
+                    if (magDuiken) {
+                        // Amsterdams & Maat heeft slag -> Je hoeft niet over je maat heen.
+                        return true; 
+                    } else {
+                        // Rotterdams OF tegenstander heeft slag -> Je MOET overtroeven.
+                        if (card.suit !== this.trumpSuit) return false;
+                        if (KJConfig.VALUES_TRUMP[card.rank].strength <= highestTrumpStrength) return false;
+                        return true;
+                    }
+                } else {
+                    // Je kunt NIET overtroeven (je hebt alleen lage troeven).
+                    
+                    // Heb je nog andere kleuren dan troef?
+                    const hasOtherSuits = hand.some(c => c.suit !== this.trumpSuit);
+                    
+                    if (card.suit === this.trumpSuit) {
+                        // Je probeert onder te troeven. Mag dat?
+                        // Alleen als je niet anders kan (geen andere kleuren).
+                        if (hasOtherSuits) return false; 
+                        return true; 
+                    } else {
+                        // Je gooit een andere kleur (bijgooien).
+                        return true;
+                    }
                 }
             }
         }
 
+        // Als je niet kunt bekennen en geen troef hebt, mag je alles gooien.
         return true;
     },
 
@@ -243,8 +302,7 @@ const KJCore = {
         let scoreDefending = (playingTeam === 'us') ? this.points.them : this.points.us;
         let resultType = 'NORMAL';
 
-        // 2. Check voor PIT (Alle slagen, dus verdediging heeft 0 punten)
-        // Let op: Bij pit krijg je 100 punten extra
+        // 2. Check voor PIT
         if (scoreDefending === 0) {
             scorePlaying += 100; 
             if (playingTeam === 'us') this.points.us += 100;
@@ -252,11 +310,8 @@ const KJCore = {
             resultType = 'PIT';
         }
 
-        // 3. Check voor NAT (Niet gewonnen door spelend team)
-        // Als je speelt moet je meer punten hebben dan de tegenpartij.
-        // Bij gelijkspel of verlies ben je nat.
+        // 3. Check voor NAT
         if (scorePlaying <= scoreDefending && resultType !== 'PIT') {
-            // Nat! Alle punten gaan naar de tegenpartij
             if (playingTeam === 'us') {
                 this.points.them += this.points.us;
                 this.points.us = 0;
@@ -267,14 +322,13 @@ const KJCore = {
             resultType = 'NAT';
         }
 
-        // 4. Totaalscore bijwerken (Boompje score)
+        // 4. Totaalscore bijwerken
         this.matchPoints.us += this.points.us;
         this.matchPoints.them += this.points.them;
         
         // 5. Ronde teller ophogen
         this.currentRound++;
 
-        // 6. Resultaat teruggeven
         return { 
             type: resultType, 
             roundScore: { ...this.points }, 

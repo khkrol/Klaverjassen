@@ -4,12 +4,9 @@ import { collection, addDoc, query, where, orderBy, limit, getDocs } from "https
 
 const LeaderboardService = {
     
-    /**
-     * Sla een score op in de 'scores' collectie
-     */
     saveScore: async function(playerName, score) {
         const name = playerName.trim() || "Anoniem";
-        const now = Date.now(); // Huidige tijd in ms
+        const now = Date.now(); 
 
         try {
             await addDoc(collection(db, "scores"), {
@@ -26,20 +23,16 @@ const LeaderboardService = {
         }
     },
 
-    /**
-     * Haal de top 10 op van de afgelopen 7 dagen
-     */
     getTopScores: async function(listElementId) {
         const listElement = document.getElementById(listElementId);
         if (!listElement) return;
 
         listElement.innerHTML = '<li class="loading-state">Laden...</li>';
 
-        // 7 dagen geleden berekenen
+        // 7 dagen geleden
         const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
 
         try {
-            // Query: Datum > 7 dagen geleden, Sorteer op Score (Hoog-Laag), Max 10
             const q = query(
                 collection(db, "scores"),
                 where("date", ">", sevenDaysAgo),
@@ -54,26 +47,16 @@ const LeaderboardService = {
                 scores.push(doc.data());
             });
 
-            // Als query leeg is, probeer fallback (zonder datum, misschien is db net nieuw)
-            if (scores.length === 0) {
-                 this.renderList([], listElementId); // Lege lijst tonen
-            } else {
-                // Client-side sortering voor zekerheid (soms doet Firestore moeilijk over mixed indexes)
-                scores.sort((a, b) => b.score - a.score);
-                this.renderList(scores, listElementId);
-            }
+            // Client-side sortering
+            scores.sort((a, b) => b.score - a.score);
+            this.renderList(scores, listElementId);
 
         } catch (error) {
             console.error("Ophalen mislukt:", error);
-            // Fallback: Waarschijnlijk mist er een index in Firebase. 
-            // We tonen een melding in de console, maar crashen niet.
             listElement.innerHTML = '<li class="error-state">Kan lijst niet laden.<br><small>Check console voor Index link</small></li>';
         }
     },
 
-    /**
-     * HTML maken voor de lijst
-     */
     renderList: function(scores, listElementId) {
         const list = document.getElementById(listElementId);
         list.innerHTML = '';
@@ -89,7 +72,6 @@ const LeaderboardService = {
             const li = document.createElement('li');
             li.className = `hs-item rank-${index + 1}`;
             
-            // Datum netjes maken
             const dateObj = new Date(item.date);
             const dateStr = dateObj.toLocaleDateString('nl-NL', { weekday: 'short' }) + ' ' + 
                             dateObj.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
@@ -109,5 +91,4 @@ const LeaderboardService = {
     }
 };
 
-// Beschikbaar maken voor de rest van de app
 window.LeaderboardService = LeaderboardService;

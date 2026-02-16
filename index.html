@@ -48,7 +48,7 @@
         <div id="main-menu" class="screen-panel">
             <div class="logo-area">
                 <h1>Klaas<br><span class="highlight">Klaverjas</span></h1>
-                <p class="subtitle">Versie 15 februari 2026</p>
+                <p class="subtitle">Versie 16 februari 2026</p>
             </div>
             <div class="menu-buttons">
                 <button id="btn-start-game" class="btn-primary">START SPEL</button>
@@ -59,7 +59,7 @@
         </div>
 
         <div id="leaderboard-view" class="screen-panel hidden">
-            <h2 style="color:var(--accent-gold); text-shadow:2px 2px 0 #000; margin-bottom:10px;">WEEK TOP 10</h2>
+            <h2 style="color:var(--accent-gold); text-shadow:2px 2px 0 #000; margin-bottom:10px;">LEIDERBORD</h2>
             <div class="leaderboard-container">
                 <ul id="highscore-list" class="hs-list">
                     <li>Laden...</li>
@@ -121,15 +121,28 @@
             <h2 style="color:var(--accent-gold); text-shadow:2px 2px 0 #000; margin-bottom:20px;">INSTELLINGEN</h2>
             
             <div class="rules-container" style="text-align: center; display:flex; flex-direction:column; gap:20px;">
-                <p style="color:var(--text-main);">Kies hoe snel de computer speelt:</p>
                 
-                <div style="display:flex; flex-direction:column; gap:10px;">
-                    <button id="spd-slow" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('slow')">🐢 RUSTIG</button>
-                    <button id="spd-normal" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('normal')">🚶 NORMAAL</button>
-                    <button id="spd-fast" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('fast')">🚀 VLOT</button>
+                <div>
+                    <p style="color:var(--text-main); margin-bottom:10px;">Spelsnelheid:</p>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <button id="spd-slow" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('slow')">🐢 RUSTIG</button>
+                        <button id="spd-normal" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('normal')">🚶 NORMAAL</button>
+                        <button id="spd-fast" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('fast')">🚀 VLOT</button>
+                    </div>
+                    <p id="current-speed-label" style="font-size:0.9em; color:var(--accent-gold); margin-top:5px;">Huidig: Normaal</p>
                 </div>
 
-                <p id="current-speed-label" style="font-size:0.9em; color:var(--accent-gold); margin-top:10px;">Huidig: Normaal</p>
+                <hr style="border-color:rgba(255,255,255,0.1); width:100%;">
+
+                <div>
+                    <p style="color:var(--text-main); margin-bottom:10px;">Regels:</p>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <button id="rule-rotterdam" class="btn-secondary" onclick="KlaverjasMain.setRuleSet('rotterdam')">⚓ ROTTERDAMS (Verplicht)</button>
+                        <button id="rule-amsterdam" class="btn-secondary" onclick="KlaverjasMain.setRuleSet('amsterdam')">❌ AMSTERDAMS (Maat = Vrij)</button>
+                    </div>
+                    <p id="current-rule-label" style="font-size:0.9em; color:var(--accent-gold); margin-top:5px;">Huidig: Rotterdams</p>
+                </div>
+
             </div>
 
             <button id="btn-back-settings" class="btn-secondary" style="margin-top:20px;">TERUG</button>
@@ -163,10 +176,10 @@
                 </div>
             </div>
 
+            <div id="status-bar" class="status-bar">Welkom bij Klaas Klaverjas</div>
+
             <div class="table-container">
                 <div class="klaverjas-table" id="game-table">
-                    <div id="game-message" class="toast hidden">Melding</div>
-                    
                     <div class="player p-top" id="player-wrapper-2">
                         <div class="avatar" id="avatar-2">N</div>
                         <span class="p-name">Noord</span>
@@ -240,6 +253,9 @@
             </div>
 
         </div>
+        
+        <canvas id="confetti-canvas"></canvas>
+
     </div>
 </div>
 
