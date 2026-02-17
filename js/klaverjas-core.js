@@ -4,7 +4,8 @@
 
 const KJCore = {
 // Voeg dit toe bovenaan in KJCore object properties:
-    biddingMode: 'normal', // 'normal' of 'drents'
+    biddingMode: 'drents',   // Was 'normal'
+    ruleSet: 'amsterdam',    // Was 'rotterdam'
     proposedSuit: null,    // De kleur van de gedraaide kaart
     biddingRound: 1,       // 1 = vrijwillig, 2 = verplicht (na 4x pas in Drents)
 

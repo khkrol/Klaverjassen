@@ -123,40 +123,43 @@ bindEvents: function() {
         this.updateSettingsUI();
     },
 
-    updateSettingsUI: function() {
-        // Snelheid
-        const savedSpeed = localStorage.getItem('klaverjas_speed') || 'normal';
-        ['slow', 'normal', 'fast'].forEach(type => {
-            const btn = document.getElementById('spd-' + type);
-            if(btn) btn.classList.remove('btn-active');
-        });
-        const activeSpeedBtn = document.getElementById('spd-' + savedSpeed);
-        if(activeSpeedBtn) activeSpeedBtn.classList.add('btn-active');
-        
-        const lblSpeed = document.getElementById('current-speed-label');
-        if(lblSpeed) lblSpeed.innerText = `Huidig: ${savedSpeed === 'slow' ? 'Rustig' : (savedSpeed === 'fast' ? 'Vlot' : 'Normaal')}`;
+updateSettingsUI: function() {
+    // 1. SNELHEID
+    const savedSpeed = localStorage.getItem('klaverjas_speed') || 'normal';
+    ['slow', 'normal', 'fast'].forEach(type => {
+        const btn = document.getElementById('spd-' + type);
+        if(btn) btn.classList.remove('btn-active');
+    });
+    const activeSpeedBtn = document.getElementById('spd-' + savedSpeed);
+    if(activeSpeedBtn) activeSpeedBtn.classList.add('btn-active');
+    
+    const lblSpeed = document.getElementById('current-speed-label');
+    if(lblSpeed) lblSpeed.innerText = `Huidig: ${savedSpeed === 'slow' ? 'Rustig' : (savedSpeed === 'fast' ? 'Vlot' : 'Normaal')}`;
 
-        // Regels
-        const savedRules = localStorage.getItem('klaverjas_rules') || 'rotterdam';
-        ['rotterdam', 'amsterdam'].forEach(type => {
-            const btn = document.getElementById('rule-' + type);
-            if(btn) btn.classList.remove('btn-active');
-        });
-        const activeRuleBtn = document.getElementById('rule-' + savedRules);
-        if(activeRuleBtn) activeRuleBtn.classList.add('btn-active');
+    // 2. REGELS (Fix & Default = Amsterdam)
+    const savedRules = localStorage.getItem('klaverjas_rules') || 'amsterdam'; // <--- STANDAARD NU AMSTERDAM
+    ['rotterdam', 'amsterdam'].forEach(type => {
+        const btn = document.getElementById('rule-' + type);
+        if(btn) btn.classList.remove('btn-active');
+    });
+    const activeRuleBtn = document.getElementById('rule-' + savedRules);
+    if(activeRuleBtn) activeRuleBtn.classList.add('btn-active');
 
-        // Mode
-        const savedMode = localStorage.getItem('klaverjas_mode') || 'normal';
-        ['normal', 'drents'].forEach(type => {
-            const btn = document.getElementById('mode-' + type);
-            if(btn) btn.classList.remove('btn-active');
-        });
-        const activeModeBtn = document.getElementById('mode-' + savedMode);
-        if(activeModeBtn) activeModeBtn.classList.add('btn-active');
+    const lblRules = document.getElementById('current-rule-label'); // <--- DEZE UPDATE NU GOED
+    if(lblRules) lblRules.innerText = `Huidig: ${savedRules === 'amsterdam' ? 'Amsterdam (Maat = Vrij)' : 'Rotterdam (Verplicht)'}`;
 
-        const lblMode = document.getElementById('current-mode-label');
-        if(lblMode) lblMode.innerText = `Huidig: ${savedMode === 'drents' ? 'Drents' : 'Vrije Keuze'}`;
-    },
+    // 3. MODE (Default = Drents & Naamswijziging)
+    const savedMode = localStorage.getItem('klaverjas_mode') || 'drents'; // <--- STANDAARD NU DRENTS
+    ['normal', 'drents'].forEach(type => {
+        const btn = document.getElementById('mode-' + type);
+        if(btn) btn.classList.remove('btn-active');
+    });
+    const activeModeBtn = document.getElementById('mode-' + savedMode);
+    if(activeModeBtn) activeModeBtn.classList.add('btn-active');
+
+    const lblMode = document.getElementById('current-mode-label');
+    if(lblMode) lblMode.innerText = `Huidig: ${savedMode === 'drents' ? 'Drents' : 'Utrechts (Vrije Keuze)'}`;
+},
 
 startGame: function(isNewGame = false) {
         try {
