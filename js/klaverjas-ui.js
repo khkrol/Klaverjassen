@@ -42,18 +42,27 @@ const KJUI = {
 
     renderHand: function(hand) {
         this.el.hand.innerHTML = ''; 
-        const totalCards = hand.length;
-        const isMyTurn = (KJCore.turnIndex === 0);
-
-        hand.forEach((card, index) => {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'hand-card'; 
+            const totalCards = hand.length;
+            const isMyTurn = (KJCore.turnIndex === 0);
             
-            const mid = (totalCards - 1) / 2;
-            const rotate = (index - mid) * 6; 
-            const translateY = Math.abs(index - mid) * 8; 
+            // NIEUW: Check of we op mobiel zitten
+            const isMobile = window.innerWidth < 600;
+            
+            // Op mobiel een kleinere hoek (3 graden) dan op desktop (6 graden)
+            const spreadAngle = isMobile ? 3.5 : 6; 
+            const yOffsetFactor = isMobile ? 4 : 8;
 
-            wrapper.style.transform = `rotate(${rotate}deg) translateY(${translateY}px)`;
+            hand.forEach((card, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'hand-card'; 
+                
+                const mid = (totalCards - 1) / 2;
+                
+                // Gebruik de variabele hoek
+                const rotate = (index - mid) * spreadAngle; 
+                const translateY = Math.abs(index - mid) * yOffsetFactor; 
+
+                wrapper.style.transform = `rotate(${rotate}deg) translateY(${translateY}px)`;
             wrapper.innerHTML = this.createCardHTML(card);
             
             if (isMyTurn) {

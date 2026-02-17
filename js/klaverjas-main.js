@@ -613,34 +613,57 @@ showRoundEndScreen: function(result) {
     };
 },
     
-    setupGameOverButtons: function(totalScore) {
-        const btnSave = document.getElementById('btn-save-score');
-        const btnMenu = document.getElementById('btn-to-menu');
-        const input = document.getElementById('player-name-input');
+// In js/klaverjas-main.js -> KlaverjasMain object:
 
-        btnSave.onclick = async () => {
-            const name = input.value;
-            if(!name) { alert("Vul je naam in!"); return; }
+setupGameOverButtons: function(totalScore) {
+    const btnSave = document.getElementById('btn-save-score');
+    const btnMenu = document.getElementById('btn-to-menu');
+    const input = document.getElementById('player-name-input');
+    const msgLabel = document.getElementById('go-message'); // Het tekstje boven de input
+
+    btnSave.onclick = async () => {
+        const name = input.value;
+        if(!name) { 
+            alert("Vul je naam in!"); // Deze mag wel blijven als validatie, of maak rood
+            input.style.borderColor = "red";
+            return; 
+        }
+        
+        // 1. Visuele feedback: Bezig...
+        btnSave.innerText = "⏳ BEZIG...";
+        btnSave.disabled = true;
+        
+        if (window.LeaderboardService) {
+            const success = await window.LeaderboardService.saveScore(name, totalScore.us);
             
-            btnSave.innerText = "Bezig...";
-            
-            if (window.LeaderboardService) {
-                const success = await window.LeaderboardService.saveScore(name, totalScore.us);
-                if (success) {
-                    alert("Score opgeslagen!");
+            if (success) {
+                // 2. SUCCES: Verander de knop en tekst
+                btnSave.innerText = "✅ OPGESLAGEN!";
+                btnSave.style.background = "#4CAF50"; // Groen
+                btnSave.style.borderColor = "#2E7D32";
+                
+                msgLabel.innerText = "Bedankt voor het spelen!";
+                msgLabel.style.color = "var(--accent-gold)";
+
+                // 3. Wacht even en herlaad dan
+                setTimeout(() => {
                     location.reload(); 
-                } else {
-                    btnSave.innerText = "PROBEER OPNIEUW";
-                }
-            } else {
-                alert("Fout: Service niet geladen.");
-            }
-        };
+                }, 1500); 
 
-        btnMenu.onclick = () => {
-            location.reload(); 
-        };
-    },
+            } else {
+                // FOUT
+                btnSave.innerText = "PROBEER OPNIEUW";
+                btnSave.disabled = false;
+            }
+        } else {
+            console.error("Service niet geladen");
+        }
+    };
+
+    btnMenu.onclick = () => {
+        location.reload(); 
+    };
+},
 
     updateMyHand: function() { KJUI.renderHand(KJCore.hands[0]); },
 
