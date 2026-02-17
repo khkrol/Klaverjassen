@@ -38,6 +38,8 @@ bindEvents: function() {
             'btn-start-game': () => this.startGame(true),
             'btn-topscores': () => this.showLeaderboard(),
             'btn-rules': () => this.showRules(),
+            'btn-info': () => this.showInfo(),
+            'btn-back-info': () => this.showMenu(),
             'btn-settings': () => this.showSettings(),
             'btn-back-menu': () => this.showMenu(),
             'btn-back-rules': () => this.showMenu(),
@@ -71,7 +73,7 @@ bindEvents: function() {
     },
 
     showMenu: function() {
-        ['game-view', 'leaderboard-view', 'rules-view', 'settings-view'].forEach(id => {
+        ['game-view', 'leaderboard-view', 'rules-view', 'settings-view', 'info-view'].forEach(id => {
             const el = document.getElementById(id);
             if(el) el.classList.add('hidden');
         });
@@ -88,6 +90,11 @@ bindEvents: function() {
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('rules-view').classList.remove('hidden');
     },
+
+    showInfo: function() {
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('info-view').classList.remove('hidden');
+},
 
     showSettings: function() {
         document.getElementById('main-menu').classList.add('hidden');
