@@ -379,14 +379,13 @@
 }
 
 .hand-card {
-    /* OUD: margin-right: -35px; */
-    
-    /* NIEUW: Minder overlap, dus breder */
     margin-right: -22px; 
-    
     transition: transform 0.2s;
     cursor: pointer;
     transform-origin: bottom center;
+    
+    /* FIX: Zorg dat de schaduw van de wrapper óók rond is */
+    border-radius: 6px; 
     box-shadow: -2px 0 5px rgba(0,0,0,0.2);
 }
 
@@ -555,14 +554,12 @@
     position: absolute;
     width: 65px; height: 96px;
     z-index: 150;
-    
-    /* De overgang: duurt 0.5 seconde en remt zachtjes af aan het eind */
     transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
     
-    /* De Landing: Platte schaduw (want hij ligt op tafel) */
+    /* DE FIX: */
+    border-radius: 6px;
     box-shadow: 1px 2px 5px rgba(0,0,0,0.4);
     
-    /* De Landing: Normaal formaat (schaal 1) */
     transform: translate(-50%, -50%) scale(1.0);
 }
 
