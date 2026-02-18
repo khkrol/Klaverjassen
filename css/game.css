@@ -1,4 +1,4 @@
-/* game.css - Bruine Kroeg Editie - VERSION 1.5 (NO-3D FIX) */
+/* game.css - Bruine Kroeg Editie - VERSION 1.6 (VISUAL FIX) */
 
 /* =========================================
    1. MENU & ALGEMENE LAYOUT
@@ -192,7 +192,6 @@
         0 0 0 1px rgba(255,255,255,0.05);
         
     position: relative;
-    /* Belangrijk voor mobiel: Plat slaan die hap */
     transform-style: flat; 
     z-index: 10;
 }
@@ -244,37 +243,46 @@
 .p-right { right: 10px; top: 50%; transform: translateY(-50%); }
 
 /* =========================================
-   4. KAARTEN (FIX 1.5 - PLATTE MODUS)
+   4. KAARTEN (DEFINTIEVE FIX)
    ========================================= */
 
+/* De basis kaartstijl (voor in de hand én op tafel) */
 .card-modern {
     width: 65px;
     height: 96px;
     
-    /* BASIS: WIT EN SCHOON */
-    background-color: #ffffff !important; 
+    /* HARDE RESET VAN ACHTERGROND - Zorgt dat hij 100% wit is */
+    background: #ffffff !important; 
+    background-color: #ffffff !important;
     background-image: none !important; 
     
+    /* Geen doorzichtigheid! */
+    opacity: 1 !important;
+    
     border-radius: 6px;
-    box-shadow: 1px 2px 4px rgba(0,0,0,0.3);
     border: 1px solid #999; 
+    
+    /* Standaard schaduw (in de hand) */
+    box-shadow: 1px 2px 4px rgba(0,0,0,0.3);
+    
     overflow: hidden;
     position: relative;
     display: block; 
+    z-index: 1; /* Zorg dat inhoud (cijfers) erboven ligt */
 }
 
+/* Inhoud van de kaart */
 .card-value {
     font-weight: 700;
     font-size: 1.4em;
     line-height: 0.9;
-    z-index: 2;
+    z-index: 5;
     text-align: center;
     letter-spacing: -1px;
     position: absolute;
     top: 3px;
     left: 4px;
 }
-
 .card-value span { font-size: 0.7em; display: block; margin-top: -2px; }
 
 .card-corner-btm {
@@ -292,51 +300,49 @@
     font-size: 3.2em;
     opacity: 0.2;
     pointer-events: none;
+    z-index: 2;
 }
 
-/* KAARTEN OP TAFEL (ANIMATIE - DE FIX) */
+/* --- KAARTEN OP TAFEL (ANIMATIE) --- */
+/* Dit is de container die beweegt. Deze mag GEEN visuele eigenschappen hebben! */
+
 .table-anim-card {
     position: absolute;
     width: 65px; height: 96px;
-    
-    /* 1. FORCEER DE HOOGSTE LAAG (PLAT) */
     z-index: 9999 !important; 
     
-    /* 2. ACHTERGROND OOK OP DE CONTAINER ZETTEN */
-    background-color: #ffffff !important;
-    
-    /* 3. HELDERHEID BOOSTEN (Compenseer de grijze waas) */
-    filter: brightness(1.1) contrast(1.05) !important;
-    
-    /* 4. GEEN BLEND MODES */
-    mix-blend-mode: normal !important;
-    opacity: 1 !important;
-    
-    /* 5. ALLEEN 2D TRANSFORMATIES (Geen translateZ!) */
-    transform: translate(-50%, -50%) scale(1.0) !important;
-    
-    border-radius: 6px;
-    /* Een simpele, harde schaduw */
-    box-shadow: 0 2px 6px rgba(0,0,0,0.5) !important;
+    /* CRUCIAAL: Container is onzichtbaar, alleen de beweging */
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
     
     transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    
+    /* Alleen 2D transformaties om mobiele bugs te voorkomen */
+    transform: translate(-50%, -50%) scale(1.0) !important;
 }
 
-/* Zorg dat de kaart IN de animatiecontainer ook wit blijft */
+/* De kaart BINNENIN de bewegende container */
 .table-anim-card .card-modern {
-    background-color: #ffffff !important;
-    background-image: none !important;
-    box-shadow: none !important; 
+    width: 100% !important;
+    height: 100% !important;
+    
+    /* De kaart zelf is wit en heeft de schaduw */
+    background: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
     border: 1px solid #bbb !important;
+    
+    /* Extra helderheid om grauwe waas tegen te gaan */
+    filter: brightness(1.05);
 }
 
-/* Animatie posities - ALLEEN 2D */
-.fly-in-bottom { transform: translate(-50%, 300px) scale(1.3) rotate(-10deg) !important; opacity: 1 !important; }
-.fly-in-top    { transform: translate(-50%, -300px); opacity: 1 !important; }
-.fly-in-left   { transform: translate(-300px, -50%); opacity: 1 !important; }
-.fly-in-right  { transform: translate(300px, -50%); opacity: 1 !important; }
+/* Animatie posities */
+.fly-in-bottom { transform: translate(-50%, 300px) scale(1.3) rotate(-10deg) !important; }
+.fly-in-top    { transform: translate(-50%, -300px) !important; }
+.fly-in-left   { transform: translate(-300px, -50%) !important; }
+.fly-in-right  { transform: translate(300px, -50%) !important; }
 
-/* Rustposities - ALLEEN 2D */
+/* Rustposities */
 .on-table-bottom { top: 65%; left: 50%; transform: translate(-50%, -50%) !important; }
 .on-table-top    { top: 35%; left: 50%; transform: translate(-50%, -50%) !important; }
 .on-table-left   { top: 50%; left: 35%; transform: translate(-50%, -50%) !important; }
@@ -378,9 +384,8 @@
     transition: transform 0.2s;
     cursor: pointer;
     transform-origin: bottom center;
-    border-radius: 6px; 
-    /* Lichte schaduw in de hand is prima */
-    box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+    /* De wrapper in de hand is ook transparant */
+    background: transparent;
 }
 
 .hand-card:last-child { margin-right: 0; }
@@ -395,7 +400,7 @@
 
 .card-disabled .card-modern {
     transform: scale(0.9) translateY(10px); 
-    filter: brightness(0.6) grayscale(0.5); /* Hier mag het WEL grijs zijn */
+    filter: brightness(0.6) grayscale(0.5); 
     background-color: #ddd !important;
     border-color: #555;
     box-shadow: none;
