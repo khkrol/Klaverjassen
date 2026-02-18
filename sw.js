@@ -2,7 +2,6 @@ const CACHE_NAME = 'klaas-klaverjas-live'; // Naam mag nu constant blijven
 
 // Bestanden die we zeker willen cachen voor offline gebruik
 const CORE_ASSETS = [
-  './',
   './index.html',
   './css/global.css',
   './css/game.css',

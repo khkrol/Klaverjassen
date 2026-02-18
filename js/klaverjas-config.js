@@ -5,6 +5,7 @@
 const KJConfig = {
     // Suits met CSS klassen voor de kleuren
     ROUNDS_PER_GAME: 4, // <--- NIEUW: Een boompje is 16 rondes
+    TRUMP_BONUS: 100, // <--- NIEUW: Magic Number hier definiëren
     SUITS: {
         HEARTS:   { id: 'h', symbol: '♥', cssClass: 'suit-red',   name: 'Harten' },
         DIAMONDS: { id: 'd', symbol: '♦', cssClass: 'suit-red',   name: 'Ruiten' },

@@ -241,133 +241,127 @@ const KJUI = {
 // In js/klaverjas-ui.js
 
 renderLastTrick: function(trickData) {
-    const overlay = document.getElementById('last-trick-overlay');
-    const container = document.getElementById('last-trick-cards');
-    
-    if (!overlay || !container) return;
-
-    // Reset inhoud
-    container.innerHTML = '';
-    
-    // Verwijder oude details (zowel punten als spelinfo)
-    const oldDetails = document.getElementById('last-trick-details');
-    if (oldDetails) oldDetails.remove();
-    const oldInfo = document.getElementById('last-trick-info');
-    if (oldInfo) oldInfo.remove();
-
-    const playerNames = ['ZUID', 'WEST', 'NOORD', 'OOST'];
-
-    // 1. RENDER KAARTEN (Code blijft hetzelfde)
-    trickData.cards.forEach(play => {
-        const itemWrapper = document.createElement('div');
-        itemWrapper.className = 'last-trick-item';
-
-        const isWinner = (play.playerIndex === trickData.winnerIndex);
-        const nameColor = isWinner ? 'var(--accent-gold)' : '#ccc';
-        const fontWeight = isWinner ? 'bold' : 'normal';
-
-        const nameLabel = document.createElement('span');
-        nameLabel.className = 'last-trick-label';
-        nameLabel.innerText = playerNames[play.playerIndex];
-        nameLabel.style.color = nameColor;
-        nameLabel.style.fontWeight = fontWeight;
-
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = this.createCardHTML(play.card);
-        const cardElement = tempDiv.firstElementChild;
-
-        cardElement.style.position = 'relative'; 
-        cardElement.style.transform = 'scale(0.85)';
-        cardElement.style.margin = '0';
+        const overlay = document.getElementById('last-trick-overlay');
+        const container = document.getElementById('last-trick-cards');
         
-        if (isWinner) {
-            cardElement.style.boxShadow = "0 0 15px var(--accent-gold)";
-            cardElement.style.borderColor = "var(--accent-gold)";
+        if (!overlay || !container) return;
+
+        // 1. Reset de inhoud
+        container.innerHTML = '';
+        
+        // Verwijder eventuele oude info-blokken die we eerder hebben toegevoegd
+        const oldDetails = document.getElementById('last-trick-details');
+        if (oldDetails) oldDetails.remove();
+        const oldInfo = document.getElementById('last-trick-info');
+        if (oldInfo) oldInfo.remove();
+
+        const h3 = overlay.querySelector('h3');
+
+        // --- SITUATIE 1: NOG GEEN SLAG (START VAN SPEL) ---
+        if (!trickData || !trickData.cards || trickData.cards.length === 0) {
+            if(h3) h3.textContent = "Huidige Ronde";
+
+            const infoDiv = document.createElement('div');
+            infoDiv.id = 'last-trick-info';
+            infoDiv.style.textAlign = 'center';
+            infoDiv.style.width = '100%';
+            infoDiv.style.padding = '10px';
+            
+            // Troef ophalen
+            let trumpHtml = "<span style='color:#999'>Nog kiezen...</span>";
+            if (KJCore.trumpSuit) {
+                const s = Object.values(KJConfig.SUITS).find(x => x.id === KJCore.trumpSuit);
+                if(s) trumpHtml = `<span class="${s.cssClass}" style="font-size:2.5em; vertical-align:middle;">${s.symbol}</span><div style="color:#ccc; margin-top:5px;">${s.name}</div>`;
+            }
+
+            infoDiv.innerHTML = `
+                <div style="background:rgba(255,255,255,0.05); border-radius:8px; padding:20px; margin-top:10px;">
+                    <p style="color:#aaa; margin:0 0 15px 0; font-style:italic;">Er is nog geen vorige slag.</p>
+                    <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
+                        <p style="color:var(--accent-gold); font-size:1.1em; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">Actieve Troef</p>
+                        ${trumpHtml}
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(infoDiv);
+            overlay.classList.remove('hidden');
+            
+            // Klik om te sluiten
+            overlay.onclick = () => overlay.classList.add('hidden');
+            return; // Klaar, we tekenen geen kaarten
         }
-        
-        itemWrapper.appendChild(nameLabel);
-        itemWrapper.appendChild(cardElement);
-        container.appendChild(itemWrapper);
-    });
 
-    // --- NIEUW: SPEL INFORMATIE BLOK ---
-    const infoDiv = document.createElement('div');
-    infoDiv.id = 'last-trick-info';
-    infoDiv.style.marginBottom = '15px';
-    infoDiv.style.padding = '8px';
-    infoDiv.style.background = 'rgba(255, 193, 7, 0.1)'; // Subtiel geel
-    infoDiv.style.border = '1px solid var(--accent-gold)';
-    infoDiv.style.borderRadius = '6px';
-    infoDiv.style.fontSize = '0.9em';
-    infoDiv.style.color = '#fff';
-    infoDiv.style.width = '100%';
+        // --- SITUATIE 2: ER IS WEL EEN SLAG ---
+        if(h3) h3.textContent = "Vorige Slag";
+        const playerNames = ['ZUID', 'WEST', 'NOORD', 'OOST'];
 
-    // Haal data op
-    const playingTeamName = KlaverjasMain.playingTeam === 'us' ? 'WIJ' : 'ZIJ';
-    const ruleName = KJCore.ruleSet === 'amsterdam' ? 'Ams' : 'Rot';
-    const modeName = KJCore.biddingMode === 'drents' ? 'Drents' : 'Utrechts';
+        // Kaarten tekenen
+        trickData.cards.forEach(play => {
+            const itemWrapper = document.createElement('div');
+            itemWrapper.className = 'last-trick-item';
 
-    infoDiv.innerHTML = `
-        <div style="display:flex; justify-content:space-between;">
-            <span>Spelend Team:</span> <strong>${playingTeamName}</strong>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-top:4px; font-size:0.85em; opacity:0.8;">
-            <span>Variant:</span> <span>${modeName} / ${ruleName}</span>
-        </div>
-    `;
+            const isWinner = (play.playerIndex === trickData.winnerIndex);
+            
+            // Naam label
+            const nameLabel = document.createElement('span');
+            nameLabel.className = 'last-trick-label';
+            nameLabel.innerText = playerNames[play.playerIndex];
+            if(isWinner) {
+                nameLabel.style.color = 'var(--accent-gold)';
+                nameLabel.style.fontWeight = 'bold';
+            } else {
+                nameLabel.style.color = '#ccc';
+            }
 
-    // 2. PUNTEN SECTIE (Bestaande code)
-    const detailsDiv = document.createElement('div');
-    detailsDiv.id = 'last-trick-details';
-    detailsDiv.style.marginTop = '10px';
-    detailsDiv.style.padding = '15px';
-    detailsDiv.style.background = 'rgba(0,0,0,0.3)';
-    detailsDiv.style.borderRadius = '8px';
-    detailsDiv.style.width = '100%';
-    detailsDiv.style.textAlign = 'left';
+            // De Kaart
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = this.createCardHTML(play.card);
+            const cardElement = tempDiv.firstElementChild;
 
-    let roemHtml = '';
-    if (trickData.roem.total > 0) {
-        roemHtml = `
-            <div style="color:var(--accent-gold); margin-top:5px;">
-                + Roem: <strong>${trickData.roem.total}</strong> 
-                <span style="font-size:0.8em; opacity:0.8">(${trickData.roem.desc.join(', ')})</span>
+            cardElement.style.position = 'relative'; 
+            cardElement.style.transform = 'scale(0.85)';
+            cardElement.style.margin = '0';
+            
+            if (isWinner) {
+                cardElement.style.boxShadow = "0 0 15px var(--accent-gold)";
+                cardElement.style.borderColor = "var(--accent-gold)";
+            }
+            
+            itemWrapper.appendChild(nameLabel);
+            itemWrapper.appendChild(cardElement);
+            container.appendChild(itemWrapper);
+        });
+
+        // Details (Punten) toevoegen
+        const detailsDiv = document.createElement('div');
+        detailsDiv.id = 'last-trick-details';
+        detailsDiv.style.marginTop = '15px';
+        detailsDiv.style.padding = '15px';
+        detailsDiv.style.background = 'rgba(0,0,0,0.3)';
+        detailsDiv.style.borderRadius = '8px';
+        detailsDiv.style.width = '100%';
+
+        let roemHtml = trickData.roem.total > 0 
+            ? `<div style="color:var(--accent-gold); margin-top:5px;">+ Roem: <strong>${trickData.roem.total}</strong> <span style="font-size:0.8em">(${trickData.roem.desc.join(', ')})</span></div>`
+            : `<div style="color:#aaa; font-size:0.9em; margin-top:5px;">Geen roem</div>`;
+
+        detailsDiv.innerHTML = `
+            <div style="display:flex; justify-content:space-between; border-bottom:1px solid #555; padding-bottom:5px;">
+                <span>Kaartpunten:</span> <strong>${trickData.points}</strong>
+            </div>
+            ${roemHtml}
+            <div style="text-align:center; margin-top:10px; font-size:0.8em; color:#888;">
+                Gewonnen door: ${playerNames[trickData.winnerIndex]}
             </div>
         `;
-    } else {
-        roemHtml = `<div style="color:#aaa; font-size:0.9em; margin-top:5px;">Geen roem</div>`;
-    }
 
-    detailsDiv.innerHTML = `
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #555; padding-bottom:5px; margin-bottom:5px;">
-            <span>Kaartpunten:</span>
-            <strong>${trickData.points}</strong>
-        </div>
-        ${roemHtml}
-        <div style="display:flex; justify-content:space-between; border-top:2px solid #fff; padding-top:5px; margin-top:10px; font-size:1.2em;">
-            <span>TOTAAL:</span>
-            <span style="color:var(--accent-gold)">${trickData.points + trickData.roem.total}</span>
-        </div>
-        <div style="text-align:center; margin-top:10px; font-size:0.8em; color:#888;">
-            Gewonnen door: ${playerNames[trickData.winnerIndex]}
-        </div>
-    `;
+        const contentBox = document.querySelector('.last-trick-container');
+        contentBox.appendChild(detailsDiv);
 
-    // Toevoegen aan container
-    const contentBox = document.querySelector('.last-trick-container');
-    
-    // Voeg Info blok toe BOVEN de kaarten (of eronder, wat je wilt. Hier doen we erboven voor duidelijkheid)
-    // Maar container is flex column, dus insertBefore trick-cards is lastig. 
-    // We voegen hem toe TUSSEN de titel en de kaarten.
-    const h3 = contentBox.querySelector('h3');
-    h3.parentNode.insertBefore(infoDiv, h3.nextSibling);
-
-    // Voeg details toe onderaan
-    contentBox.appendChild(detailsDiv);
-
-    overlay.classList.remove('hidden');
-    overlay.onclick = () => overlay.classList.add('hidden');
-},
+        overlay.classList.remove('hidden');
+        overlay.onclick = () => overlay.classList.add('hidden');
+    },
 
     updateRound: function(round) {
         const el = document.getElementById('round-current');

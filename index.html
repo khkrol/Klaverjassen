@@ -15,10 +15,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crete+Round&family=Roboto:wght@500;700&display=swap" rel="stylesheet">
 
+    <link rel="preload" href="assets/img/hoofdstijl.jpg" as="image">
+
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/game.css">
 
-    <script type="module">
+        <script type="module">
         import { db } from './js/firebase-config.js';
         window.DB = db; 
         console.log("Firebase Database is beschikbaar als window.DB");
@@ -49,7 +51,7 @@
         <div id="main-menu" class="screen-panel">
             <div class="logo-area">
                 <h1>Klaas<br><span class="highlight">Klaverjas</span></h1>
-                <p class="subtitle">Versie 18 februari 2026 (0.1)</p>
+                <p class="subtitle">Versie 18 februari 2026 (1.0)</p>
             </div>
             <div class="menu-buttons">
                 <button id="btn-start-game" class="btn-primary">START SPEL</button>
@@ -152,46 +154,95 @@
 </div>
 
         <div id="settings-view" class="screen-panel hidden">
-            <h2 style="color:var(--accent-gold); text-shadow:2px 2px 0 #000; margin-bottom:20px;">INSTELLINGEN</h2>
-            
-            <div class="rules-container" style="text-align: center; display:flex; flex-direction:column; gap:20px;">
+                <h2 style="color:var(--accent-gold); text-shadow:2px 2px 0 #000; margin-bottom:20px;">INSTELLINGEN</h2>
                 
-                <div>
-                    <p style="color:var(--text-main); margin-bottom:10px;">Spelsnelheid:</p>
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        <button id="spd-slow" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('slow')">🐢 RUSTIG</button>
-                        <button id="spd-normal" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('normal')">🚶 NORMAAL</button>
-                        <button id="spd-fast" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('fast')">🚀 VLOT</button>
+                <div class="rules-container" style="text-align: center; display:flex; flex-direction:column; gap:20px;">
+                    
+                    <div>
+                        <p style="color:var(--text-main); margin-bottom:10px; font-weight:bold;">Spelsnelheid</p>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <button id="spd-slow" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('slow')">🐢 RUSTIG</button>
+                            <button id="spd-normal" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('normal')">🚶 NORMAAL</button>
+                            <button id="spd-fast" class="btn-secondary" onclick="KlaverjasMain.setGameSpeed('fast')">🚀 VLOT</button>
+                        </div>
                     </div>
-                    <p id="current-speed-label" style="font-size:0.9em; color:var(--accent-gold); margin-top:5px;">Huidig: Normaal</p>
+
+                    <hr style="border-color:rgba(255,255,255,0.1); width:100%;">
+
+                    <div>
+                        <div class="settings-label-row">
+                            <span style="color:var(--text-main); font-weight:bold;">Regels</span>
+                            <button id="btn-info-rules-toggle" class="info-badge">?</button>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <button id="rule-amsterdam" class="btn-secondary" onclick="KlaverjasMain.setRuleSet('amsterdam')">❌ AMSTERDAMS</button>
+                            <button id="rule-rotterdam" class="btn-secondary" onclick="KlaverjasMain.setRuleSet('rotterdam')">⚓ ROTTERDAMS</button>
+                        </div>
+                    </div>
+
+                    <hr style="border-color:rgba(255,255,255,0.1); width:100%;">
+
+                    <div>
+                        <div class="settings-label-row">
+                            <span style="color:var(--text-main); font-weight:bold;">Troefsysteem</span>
+                            <button id="btn-info-mode-toggle" class="info-badge">?</button>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <button id="mode-drents" class="btn-secondary" onclick="KlaverjasMain.setBiddingMode('drents')">🎲 DRENTS (Gedraaid)</button>
+                            <button id="mode-normal" class="btn-secondary" onclick="KlaverjasMain.setBiddingMode('normal')">🖐️ UTRECHTS (Keuze)</button>
+                        </div>
+                    </div>
+
                 </div>
 
-                <hr style="border-color:rgba(255,255,255,0.1); width:100%;">
-
-                <div>
-                    <p style="color:var(--text-main); margin-bottom:10px;">Regels:</p>
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        <button id="rule-amsterdam" class="btn-secondary" onclick="KlaverjasMain.setRuleSet('amsterdam')">❌ AMSTERDAMS (Maat = Vrij)</button>
-                        <button id="rule-rotterdam" class="btn-secondary" onclick="KlaverjasMain.setRuleSet('rotterdam')">⚓ ROTTERDAMS (Verplicht)</button>
-                    </div>
-                    <p id="current-rule-label" style="font-size:0.9em; color:var(--accent-gold); margin-top:5px;">Huidig: ...</p>
-                </div>
-
-                <hr style="border-color:rgba(255,255,255,0.1); width:100%;">
-
-                <div>
-                    <p style="color:var(--text-main); margin-bottom:10px;">Troefsysteem:</p>
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        <button id="mode-drents" class="btn-secondary" onclick="KlaverjasMain.setBiddingMode('drents')">🎲 DRENTS (Gedraaide Kaart)</button>
-                        <button id="mode-normal" class="btn-secondary" onclick="KlaverjasMain.setBiddingMode('normal')">🖐️ UTRECHTS (Vrije Keuze)</button>
-                    </div>
-                    <p id="current-mode-label" style="font-size:0.9em; color:var(--accent-gold); margin-top:5px;">Huidig: ...</p>
-                </div>
-
+                <button id="btn-back-settings" class="btn-secondary" style="margin-top:20px;">TERUG</button>
             </div>
 
-            <button id="btn-back-settings" class="btn-secondary" style="margin-top:20px;">TERUG</button>
-        </div>
+            <div id="info-overlay-rules" class="hidden overlay-backdrop">
+                <div class="rules-container" style="max-width:350px; max-height:80vh; background:var(--bg-dark); border:2px solid var(--accent-gold);">
+                    <h3 style="color:var(--accent-gold); margin-top:0;">Verschil in Regels</h3>
+                    <div class="rules-content" style="text-align:left;">
+                        <p><strong>⚓ Rotterdams (De Strenge Variant)</strong><br>
+                        Dit is de standaard 'wedstrijdregel'.<br>
+                        1. Je moet altijd bekennen.<br>
+                        2. Kun je niet bekennen? Dan <u>moet</u> je troeven (introefplicht).<br>
+                        3. Wordt er al getroefd? Dan <u>moet</u> je overtroeven als je kunt.<br>
+                        <em>Zelfs als je maat de slag al heeft!</em></p>
+
+                        <hr style="border-color:#555">
+
+                        <p><strong>❌ Amsterdams (De Slimme Variant)</strong><br>
+                        Hier mag je 'duiken'.<br>
+                        Heeft jouw maat de slag?<br>
+                        Dan vervalt de troefplicht! Je mag dan:<br>
+                        - Een 'vetje' (punten) bijgooien.<br>
+                        - Ondertroeven (niet verplicht overtroeven).<br>
+                        <em>Dit geeft meer tactische vrijheid.</em></p>
+                    </div>
+                    <button id="btn-close-rules-info" class="btn-primary" style="margin-top:15px;">BEGREPEN</button>
+                </div>
+            </div>
+
+            <div id="info-overlay-mode" class="hidden overlay-backdrop">
+                <div class="rules-container" style="max-width:350px; max-height:80vh; background:var(--bg-dark); border:2px solid var(--accent-gold);">
+                    <h3 style="color:var(--accent-gold); margin-top:0;">Manier van Kiezen</h3>
+                    <div class="rules-content" style="text-align:left;">
+                        <p><strong>🎲 Drentse Variant</strong><br>
+                        De computer draait een kaart van de stapel om.<br>
+                        - Ronde 1: Wil je spelen op deze kleur? (Ja/Pas)<br>
+                        - Iedereen past? Dan is de 2e ronde <u>verplicht</u> voor de voorhand op een andere kleur.</p>
+
+                        <hr style="border-color:#555">
+
+                        <p><strong>🖐️ Utrechtse Variant (Vrije Keuze)</strong><br>
+                        Je krijgt kaarten en kiest zelf direct je favoriete kleur.<br>
+                        - Je mag elke kleur kiezen.<br>
+                        - Pas je? Dan mag de volgende kiezen.<br>
+                        - Iedereen past? Nieuwe kaarten (opnieuw delen).</p>
+                    </div>
+                    <button id="btn-close-mode-info" class="btn-primary" style="margin-top:15px;">BEGREPEN</button>
+                </div>
+            </div>
 
         <div id="game-view" class="game-panel hidden">
             

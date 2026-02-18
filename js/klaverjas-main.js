@@ -55,8 +55,10 @@ bindEvents: function() {
             'mode-normal': () => this.setBiddingMode('normal'),
             'mode-drents': () => this.setBiddingMode('drents'),
             'btn-play-drents': () => this.acceptDrentsBid(),
-            
-            // --- NIEUWE KNOPPEN ---
+            'btn-info-rules-toggle': () => document.getElementById('info-overlay-rules').classList.remove('hidden'),
+            'btn-close-rules-info': () => document.getElementById('info-overlay-rules').classList.add('hidden'),
+            'btn-info-mode-toggle': () => document.getElementById('info-overlay-mode').classList.remove('hidden'),
+            'btn-close-mode-info': () => document.getElementById('info-overlay-mode').classList.add('hidden'),
             'btn-score-sheet': () => KJUI.toggleScoreSheet(true),
             'btn-close-sheet': () => KJUI.toggleScoreSheet(false)
         };
@@ -132,12 +134,9 @@ updateSettingsUI: function() {
     });
     const activeSpeedBtn = document.getElementById('spd-' + savedSpeed);
     if(activeSpeedBtn) activeSpeedBtn.classList.add('btn-active');
-    
-    const lblSpeed = document.getElementById('current-speed-label');
-    if(lblSpeed) lblSpeed.innerText = `Huidig: ${savedSpeed === 'slow' ? 'Rustig' : (savedSpeed === 'fast' ? 'Vlot' : 'Normaal')}`;
 
-    // 2. REGELS (Fix & Default = Amsterdam)
-    const savedRules = localStorage.getItem('klaverjas_rules') || 'amsterdam'; // <--- STANDAARD NU AMSTERDAM
+    // 2. REGELS (Tekst labels verwijderd)
+    const savedRules = localStorage.getItem('klaverjas_rules') || 'amsterdam';
     ['rotterdam', 'amsterdam'].forEach(type => {
         const btn = document.getElementById('rule-' + type);
         if(btn) btn.classList.remove('btn-active');
@@ -145,20 +144,14 @@ updateSettingsUI: function() {
     const activeRuleBtn = document.getElementById('rule-' + savedRules);
     if(activeRuleBtn) activeRuleBtn.classList.add('btn-active');
 
-    const lblRules = document.getElementById('current-rule-label'); // <--- DEZE UPDATE NU GOED
-    if(lblRules) lblRules.innerText = `Huidig: ${savedRules === 'amsterdam' ? 'Amsterdam (Maat = Vrij)' : 'Rotterdam (Verplicht)'}`;
-
-    // 3. MODE (Default = Drents & Naamswijziging)
-    const savedMode = localStorage.getItem('klaverjas_mode') || 'drents'; // <--- STANDAARD NU DRENTS
+    // 3. MODE (Tekst labels verwijderd)
+    const savedMode = localStorage.getItem('klaverjas_mode') || 'drents';
     ['normal', 'drents'].forEach(type => {
         const btn = document.getElementById('mode-' + type);
         if(btn) btn.classList.remove('btn-active');
     });
     const activeModeBtn = document.getElementById('mode-' + savedMode);
     if(activeModeBtn) activeModeBtn.classList.add('btn-active');
-
-    const lblMode = document.getElementById('current-mode-label');
-    if(lblMode) lblMode.innerText = `Huidig: ${savedMode === 'drents' ? 'Drents' : 'Utrechts (Vrije Keuze)'}`;
 },
 
 startGame: function(isNewGame = false) {
@@ -442,8 +435,11 @@ onCardClick: function(cardIndex) {
 
         if (validCards.length === 0) return;
 
+        // NIEUWE SITUATIE in klaverjas-main.js
         const getPower = (c) => {
-            if (c.suit === KJCore.trumpSuit) return 100 + KJConfig.VALUES_TRUMP[c.rank].strength;
+            // Hier gebruiken we nu de variabele uit de config
+            if (c.suit === KJCore.trumpSuit) return KJConfig.TRUMP_BONUS + KJConfig.VALUES_TRUMP[c.rank].strength;
+            
             if (KJCore.currentTrick.length > 0 && c.suit === KJCore.currentTrick[0].card.suit) {
                 return KJConfig.VALUES_NORMAL[c.rank].strength;
             }
@@ -620,20 +616,38 @@ showRoundEndScreen: function(result) {
 // In js/klaverjas-main.js -> KlaverjasMain object:
 
 setupGameOverButtons: function(totalScore) {
-    const btnSave = document.getElementById('btn-save-score');
-    const btnMenu = document.getElementById('btn-to-menu');
-    const input = document.getElementById('player-name-input');
-    const msgLabel = document.getElementById('go-message'); // Het tekstje boven de input
+        const btnSave = document.getElementById('btn-save-score');
+        const btnMenu = document.getElementById('btn-to-menu');
+        const input = document.getElementById('player-name-input');
+        const msgLabel = document.getElementById('go-message'); 
 
-    btnSave.onclick = async () => {
-        const name = input.value;
-        if(!name) { 
-            alert("Vul je naam in!"); // Deze mag wel blijven als validatie, of maak rood
-            input.style.borderColor = "red";
-            return; 
-        }
-        
-        // 1. Visuele feedback: Bezig...
+        btnSave.onclick = async () => {
+            const name = input.value;
+            
+            // --- NIEUWE VALIDATIE ---
+            if(!name) { 
+                // Geen alert, maar visuele feedback
+                input.style.borderColor = "#ff5252"; // Rood
+                input.style.boxShadow = "0 0 10px rgba(255, 82, 82, 0.5)";
+                
+                // Bewaar originele tekst
+                const originalText = btnSave.innerText;
+                
+                btnSave.innerText = "NAAM VERPLICHT!";
+                btnSave.style.background = "#b71c1c"; // Donkerrood
+                
+                // Reset na 2 seconden
+                setTimeout(() => {
+                    input.style.borderColor = ""; 
+                    input.style.boxShadow = "";
+                    btnSave.innerText = originalText;
+                    btnSave.style.background = ""; 
+                }, 2000);
+                return; 
+            }
+            // -------------------------
+            
+            // 1. Visuele feedback: Bezig...
         btnSave.innerText = "⏳ BEZIG...";
         btnSave.disabled = true;
         
@@ -672,10 +686,7 @@ setupGameOverButtons: function(totalScore) {
     updateMyHand: function() { KJUI.renderHand(KJCore.hands[0]); },
 
     toggleLastTrick: function() {
-        if (!KJCore.lastTrick || !KJCore.lastTrick.cards || KJCore.lastTrick.cards.length === 0) {
-            KJUI.showMessage("Nog geen vorige slag!", 1500);
-            return;
-        }
+        // We sturen ALTIJD door naar de UI, die bepaalt zelf wat hij laat zien (Slag of Troef-info)
         KJUI.renderLastTrick(KJCore.lastTrick);
     }
 };

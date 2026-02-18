@@ -31,6 +31,11 @@ const KJCore = {
 
     init: function() {
         this.deck = KJConfig.createDeck(); 
+            if (this.deck.length !== 32) {
+                console.error("CRITISCH: Deck is corrupt! Aantal kaarten: " + this.deck.length);
+                alert("Fout in spelinitialisatie: Deck incorrect.");
+                return;
+            }
         this.shuffle(this.deck);
         this.deal();
         
@@ -132,6 +137,15 @@ sortHand: function(hand) {
      * Gebaseerd op Fase 1 van het verbeterplan: Validatie Core Engine.
      */
     validateMove: function(card, playerIndex) {
+        // NIEUW: Check of er wel een hand is
+    if (!this.hands[playerIndex] || this.hands[playerIndex].length === 0) {
+        return { valid: false, reason: "Je hebt geen kaarten meer!" };
+    }
+
+    // NIEUW: Check of troef is gekozen (behalve bij de allereerste slag als dat onderdeel van het spel is)
+    if (!this.trumpSuit && this.biddingMode !== 'drents') { // Bij Drents kan het soms anders lopen, maar veiligheid voorop
+         return { valid: false, reason: "Er is nog geen troef gekozen!" };
+    }
         // 1. Is het wel jouw beurt?
         if (playerIndex !== this.turnIndex) {
             return { valid: false, reason: "Wacht op je beurt." };
@@ -275,10 +289,11 @@ sortHand: function(hand) {
         for (let i = 1; i < trick.length; i++) {
             const challenger = trick[i];
             const getStrength = (c) => {
-                if (c.suit === this.trumpSuit) return 100 + KJConfig.VALUES_TRUMP[c.rank].strength;
+                // Gebruik KJConfig.TRUMP_BONUS in plaats van hardcoded 100
+                if (c.suit === this.trumpSuit) return KJConfig.TRUMP_BONUS + KJConfig.VALUES_TRUMP[c.rank].strength;
                 if (c.suit === askedSuit) return KJConfig.VALUES_NORMAL[c.rank].strength;
                 return 0; 
-            };
+};
 
             if (getStrength(challenger.card) > getStrength(winner.card)) {
                 winner = challenger;

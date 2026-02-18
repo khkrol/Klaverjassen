@@ -1180,4 +1180,66 @@
         width: 92%; /* Iets breder */
         max-width: 95vw;
     }
+
+    /* --- FIX: SCHADUWEN CORRIGEREN OP MOBIEL --- */
+    
+    /* 1. Reset de zware 'vliegende' schaduwen op tafelkaarten */
+    .table-anim-card, 
+    .fly-in-bottom, .fly-in-top, .fly-in-left, .fly-in-right {
+        box-shadow: 1px 2px 4px rgba(0,0,0,0.3) !important;
+        transform: translate(-50%, -50%) scale(1.0) !important; /* Forceer normale grootte op tafel */
+    }
+
+    /* 2. Verwijder de dubbele schaduw bij handkaarten */
+    /* De .hand-card is de wrapper, die hoeft geen schaduw te hebben op mobiel, de kaart zelf heeft die al */
+    .player-hand .hand-card {
+        box-shadow: none !important;
+    }
+
+    /* 3. Zorg dat de kaart zelf een nette, kleine schaduw heeft */
+    .card-modern {
+        box-shadow: 1px 1px 3px rgba(0,0,0,0.3) !important;
+        /* Eventueel een dun randje voor betere zichtbaarheid */
+        border: 1px solid #aaa !important; 
+    }
+
+    /* Styling voor de Info Knoppen in Instellingen */
+
+    .settings-label-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .info-badge {
+        background: var(--accent-gold);
+        color: var(--bg-dark);
+        font-family: var(--font-heading);
+        font-weight: bold;
+        font-size: 1.1em;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        padding: 0; /* Reset padding voor button elementen */
+        line-height: 1;
+    }
+
+    .info-badge:hover {
+        transform: scale(1.1);
+        background: #fff;
+        color: var(--accent-gold);
+    }
+
+    /* Zorg dat de overlays bovenop liggen */
+    .overlay-backdrop {
+        z-index: 5000; /* Hoogste niveau */
+    }
 }
