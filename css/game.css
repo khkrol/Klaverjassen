@@ -1183,24 +1183,26 @@
 
     /* --- FIX: SCHADUWEN CORRIGEREN OP MOBIEL --- */
     
-    /* 1. Reset de zware 'vliegende' schaduwen op tafelkaarten */
+    /* 1. Reset de zware 'vliegende' schaduwen, grootte EN doorzichtigheid */
     .table-anim-card, 
     .fly-in-bottom, .fly-in-top, .fly-in-left, .fly-in-right {
-        box-shadow: 1px 2px 4px rgba(0,0,0,0.3) !important;
+        box-shadow: 1px 2px 4px rgba(0,0,0,0.3) !important; /* Kleine schaduw */
         transform: translate(-50%, -50%) scale(1.0) !important; /* Forceer normale grootte op tafel */
+        opacity: 1 !important;     /* <--- ESSENTIEEL: Maak kaart weer 100% wit/zichtbaar */
+        filter: none !important;   /* <--- EXTRA: Verwijder eventuele filters/dimming */
+        z-index: 200 !important;   /* <--- EXTRA: Zeker weten dat hij bovenop ligt */
     }
 
     /* 2. Verwijder de dubbele schaduw bij handkaarten */
-    /* De .hand-card is de wrapper, die hoeft geen schaduw te hebben op mobiel, de kaart zelf heeft die al */
     .player-hand .hand-card {
         box-shadow: none !important;
     }
 
-    /* 3. Zorg dat de kaart zelf een nette, kleine schaduw heeft */
+    /* 3. Zorg dat de kaart zelf er fris uitziet */
     .card-modern {
         box-shadow: 1px 1px 3px rgba(0,0,0,0.3) !important;
-        /* Eventueel een dun randje voor betere zichtbaarheid */
-        border: 1px solid #aaa !important; 
+        border: 1px solid #999 !important; 
+        background-color: #fcfcf7 !important; /* Forceer de witte papierkleur */
     }
 
     /* Styling voor de Info Knoppen in Instellingen */
