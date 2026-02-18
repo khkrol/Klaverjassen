@@ -1245,3 +1245,49 @@
         z-index: 5000; /* Hoogste niveau */
     }
 }
+
+/* ============================================================
+   DEFINITIEVE FIX: SCHADUW & HELDERHEID MOBIEL
+   (Plak dit helemaal onderaan game.css)
+   ============================================================ */
+
+/* 1. VERWIJDER DE BOOSDOENER */
+/* Dit verwijdert de decoratieve schaduw-vlek in het midden van de tafel.
+   Op mobiel komt deze vaak per ongeluk BOVENOP de kaarten te liggen. */
+.klaverjas-table::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* 2. KAARTEN NAAR DE VOORGROND DWINGEN */
+/* We gebruiken z-index 9999 en 'transform: translateZ' om de browser
+   te dwingen de kaarten als aller-bovenste laag te renderen. */
+.table-anim-card {
+    z-index: 9999 !important;
+    opacity: 1 !important;
+    filter: none !important;
+    /* Een minieme brightness boost om zeker te zijn dat ze wit ogen */
+    filter: brightness(1.05) !important; 
+    /* Hardware acceleratie trucje: */
+    transform: translate(-50%, -50%) scale(1.0) translateZ(10px) !important;
+}
+
+/* 3. ZEKERHEID VOOR DE KAART ZELF */
+.table-anim-card .card-modern {
+    background-color: #fcfcf7 !important;
+    /* Verwijder gekke blend-modes als die er zijn */
+    mix-blend-mode: normal !important;
+    /* Simpele schaduw, geen ingewikkelde diepte */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+}
+
+/* 4. TAFEL RAND SCHADUW VERMINDEREN */
+/* Soms valt de 'inset' schaduw van de tafel over de kaarten heen.
+   We maken de tafel op mobiel iets 'platter' van binnen. */
+@media (max-width: 600px) {
+    .klaverjas-table {
+        box-shadow: 
+            0 20px 50px rgba(0,0,0,0.8), /* Schaduw buitenkant mag blijven */
+            0 0 0 1px rgba(255,255,255,0.05) !important; /* Inset schaduw weggehaald! */
+    }
+}
