@@ -1093,30 +1093,35 @@
 
 /* --- MOBIELE OPTIMALISATIES (TOEVOEGEN ONDERAAN GAME.CSS) --- */
 @media (max-width: 600px) {
-    /* 1. Topbalk compacter maken */
+    /* 1. Topbalk strakker maken */
     .top-bar {
-        padding: 5px 10px;
-        min-height: 60px; /* Forceer een minimale hoogte */
+        padding: 2px 8px; /* Minder lucht boven/onder */
+        height: 50px;     /* Forceer een lagere balk */
+        min-height: auto;
     }
 
+    /* Score bordjes kleiner */
     .score-pill {
-        min-width: 50px;
-        padding: 2px 5px;
+        min-width: 40px;
+        padding: 2px 4px;
+        border-bottom-width: 1px; /* Subtieler lijntje */
     }
 
-    .score-pill .value {
-        font-size: 1.4em;
-    }
+    .score-pill .label { font-size: 0.6em; }
+    .score-pill .value { font-size: 1.1em; line-height: 1.1; }
 
+    /* De gouden munt (troef) kleiner */
     .trump-display {
-        width: 45px;
-        height: 45px;
-        margin: 0 5px;
+        width: 38px;
+        height: 38px;
+        margin: 0 4px;
+        border-width: 2px;
     }
     
-    .trump-icon {
-        font-size: 1.5em;
-    }
+    .trump-icon { font-size: 1.2em; }
+    
+    /* De knopjes rechtsboven kleiner */
+    .icon-btn-small { font-size: 1.1em; }
 
     /* 2. Knoppen in topbalk kleiner */
     .icon-btn-small {
@@ -1159,5 +1164,23 @@
     .player-hand {
         padding-bottom: 10px;
         align-items: flex-end;
+    }
+
+    /* Avatars iets kleiner maken op mobiel */
+    .avatar {
+        width: 42px;  /* Was 56px */
+        height: 42px;
+        font-size: 0.9em;
+        border-width: 2px;
+    }
+
+    /* Spelers iets dichter op de rand zetten (meer ruimte voor tafel) */
+    .p-left  { left: 5px; }
+    .p-right { right: 5px; }
+    
+    /* Tafel ietsje groter nu er ruimte is */
+    .klaverjas-table {
+        width: 92%; /* Iets breder */
+        max-width: 95vw;
     }
 }

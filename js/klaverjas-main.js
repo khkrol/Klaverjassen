@@ -402,6 +402,7 @@ onCardClick: function(cardIndex) {
 
     if (validation.valid) {
         this.busy = true; 
+        KJUI.vibrate(15);
 
         // 2. Start de animatie (visueel)
         // Dit maakt een kopie die over het scherm vliegt

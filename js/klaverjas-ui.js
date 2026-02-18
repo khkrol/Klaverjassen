@@ -192,6 +192,7 @@ const KJUI = {
     },
 
     shakeHand: function() {
+        this.vibrate([50, 50, 50]); // <--- NIEUW: Bzz-bzz-bzz
         this.el.hand.classList.add('shake-anim');
         setTimeout(() => this.el.hand.classList.remove('shake-anim'), 500);
     },
@@ -374,6 +375,7 @@ renderLastTrick: function(trickData) {
     },
 
     showGameOverScreen: function(totalScore) {
+        this.vibrate([100, 50, 100, 50, 200]);
         const overlay = this.el['game-over-overlay'];
         const scoreUs = document.getElementById('go-score-us');
         const scoreThem = document.getElementById('go-score-them');
@@ -524,6 +526,15 @@ renderLastTrick: function(trickData) {
             el.classList.remove('hidden');
         } else {
             el.classList.add('hidden');
+        }
+    },
+
+    // --- NIEUW: Haptische Feedback (Trillen) ---
+    vibrate: function(pattern) {
+        // Werkt op Android (iPhone blokkeert dit helaas in de browser)
+        if (navigator.vibrate) {
+            // Als er geen patroon is, geef een kort tikje (15ms)
+            navigator.vibrate(pattern || 15);
         }
     }
 };
