@@ -51,7 +51,7 @@ body {
     /* Achtergrondafbeelding... */
     background: 
         linear-gradient(rgba(20, 10, 5, 0.6), rgba(20, 10, 5, 0.6)),
-        url('../img/hoofdstijl.jpg') no-repeat center center/cover;
+        url('../assets/img/hoofdstijl.jpg') no-repeat center center/cover;
 }
 
 .app-background {

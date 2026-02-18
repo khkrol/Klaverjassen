@@ -550,18 +550,42 @@
     border-color: #e57373;
 }
 
-/* Kaart Animaties op Tafel */
+/* Kaart Animaties op Tafel - VLOEIENDER GEMAAKT */
 .table-anim-card {
     position: absolute;
     width: 65px; height: 96px;
     z-index: 150;
-    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-    box-shadow: 0 5px 10px rgba(0,0,0,0.4);
+    
+    /* De overgang: duurt 0.5 seconde en remt zachtjes af aan het eind */
+    transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    
+    /* De Landing: Platte schaduw (want hij ligt op tafel) */
+    box-shadow: 1px 2px 5px rgba(0,0,0,0.4);
+    
+    /* De Landing: Normaal formaat (schaal 1) */
+    transform: translate(-50%, -50%) scale(1.0);
 }
-.fly-in-bottom { transform: translate(-50%, 400px); }
-.fly-in-top    { transform: translate(-50%, -400px); }
-.fly-in-left   { transform: translate(-400px, -50%); }
-.fly-in-right  { transform: translate(400px, -50%); }
+
+/* 2. De Worp (Hoe de kaart begint als hij uit je hand komt) */
+.fly-in-bottom { 
+    /* Startpositie: 
+       - 300px omlaag (uit je hand)
+       - scale(1.3) = GROTER (lijkt dichterbij)
+       - rotate(-10deg) = Beetje scheef voor speels effect
+    */
+    transform: translate(-50%, 300px) scale(1.3) rotate(-10deg) !important;
+    
+    /* Diepe schaduw omdat hij 'zweeft' */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6) !important;
+    
+    /* Iets doorzichtig in het begin */
+    opacity: 0.8;
+}
+
+/* De andere spelers (hoeven minder spectaculair, maar wel consistent) */
+.fly-in-top    { transform: translate(-50%, -300px); }
+.fly-in-left   { transform: translate(-300px, -50%); }
+.fly-in-right  { transform: translate(300px, -50%); }
 
 .on-table-bottom { top: 65%; left: 50%; transform: translate(-50%, -50%); }
 .on-table-top    { top: 35%; left: 50%; transform: translate(-50%, -50%); }
@@ -1115,9 +1139,14 @@
         max-width: 90vw;
     }
 
-    /* 4. Hand compacter maken (meer overlap) */
+    /* 4. Hand minder compact maken (minder overlap) */
     .hand-card {
-        margin-right: -40px; /* Veel meer overlap op mobiel */
+        margin-right: -28px; /* Minder negatief = kaarten schuiven uit elkaar */
+    }
+    
+    /* Zorg dat de laatste kaart niet raar doet */
+    .hand-card:last-child {
+        margin-right: 0;
     }
     
     .card-modern {

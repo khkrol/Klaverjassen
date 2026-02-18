@@ -13,8 +13,8 @@ const CORE_ASSETS = [
   './js/firebase-config.js',
   './js/leaderboard-service.js',
   './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './assets/img/icon-192.png',
+  './assets/img/icon-512.png'
 ];
 
 // 1. Installeren (Zet de basis klaar)

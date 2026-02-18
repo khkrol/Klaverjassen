@@ -1,0 +1,17 @@
+# --- Systeem Rommel (Niet uploaden!) ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- Editor Instellingen (Jouw persoonlijke voorkeuren) ---
+.vscode/
+.idea/
+*.sublime-workspace
+
+# --- Firebase (Logs en cache) ---
+.firebase/
+firebase-debug.log
+
+# --- Toekomstmuziek (Als je ooit Node.js gaat gebruiken) ---
+node_modules/
+npm-debug.log
