@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/game.css">
 
-        <script type="module">
+    <script type="module">
         import { db } from './js/firebase-config.js';
         window.DB = db; 
         console.log("Firebase Database is beschikbaar als window.DB");
@@ -51,14 +51,16 @@
         <div id="main-menu" class="screen-panel">
             <div class="logo-area">
                 <h1>Klaas<br><span class="highlight">Klaverjas</span></h1>
-                <p class="subtitle">Versie 18 februari 2026 (1.1)</p>
+                <p class="subtitle">Versie 18 februari 2026 (1.0)</p>
             </div>
             <div class="menu-buttons">
                 <button id="btn-start-game" class="btn-primary">START SPEL</button>
                 <button id="btn-topscores" class="btn-primary" style="background: linear-gradient(to bottom, #d4af37, #aa8c2c); border-color:#8a6e1c;">LEIDERBORD</button>
+                <button id="btn-guestbook" class="btn-primary" style="background: linear-gradient(to bottom, #5d4037, #3e2723);">GASTENBOEK</button>
+                
                 <button id="btn-rules" class="btn-primary">SPELREGELS</button>
                 <button id="btn-settings" class="btn-primary">INSTELLINGEN</button>
-		<button id="btn-info" class="btn-primary">INSTALLATIE & INFO</button>
+                <button id="btn-info" class="btn-primary">INSTALLATIE & INFO</button>
             </div>
         </div>
 
@@ -70,6 +72,24 @@
                 </ul>
             </div>
             <button id="btn-back-menu" class="btn-secondary" style="margin-top:20px;">TERUG</button>
+        </div>
+
+        <div id="guestbook-view" class="screen-panel hidden">
+            <h2 style="color:var(--accent-gold); text-shadow:2px 2px 0 #000; margin-bottom:10px;">HET GASTENBOEK</h2>
+            
+            <div class="guestbook-container">
+                <ul id="guestbook-list" class="gb-list">
+                    <li style="text-align:center; color:#ccc;">Berichten ophalen...</li>
+                </ul>
+            </div>
+
+            <div class="guestbook-input-area">
+                <input type="text" id="gb-input-name" placeholder="Je Naam" maxlength="15">
+                <textarea id="gb-input-msg" placeholder="Schrijf iets leuks (max 100 tekens)..." maxlength="100"></textarea>
+                <button id="btn-post-gb" class="btn-primary" style="font-size: 1em; padding: 8px;">PLAATS BERICHT</button>
+            </div>
+
+            <button id="btn-back-gb" class="btn-secondary" style="margin-top:10px;">TERUG</button>
         </div>
 
         <div id="rules-view" class="screen-panel hidden">
@@ -425,6 +445,67 @@
 
     </div>
 </div>
+
+<script type="module">
+    import { GuestbookService } from './js/guestbook-service.js';
+
+    // Wacht tot de pagina geladen is
+    window.addEventListener('load', () => {
+        const gbService = new GuestbookService();
+        
+        const menu = document.getElementById('main-menu');
+        const gbView = document.getElementById('guestbook-view');
+        
+        // 1. Openen
+        document.getElementById('btn-guestbook').addEventListener('click', () => {
+            menu.classList.add('hidden');
+            gbView.classList.remove('hidden');
+            gbService.startListening();
+        });
+
+        // 2. Sluiten (Terug)
+        document.getElementById('btn-back-gb').addEventListener('click', () => {
+            gbView.classList.add('hidden');
+            menu.classList.remove('hidden');
+            gbService.stopListening();
+        });
+
+        // 3. Bericht plaatsen
+        const btnPost = document.getElementById('btn-post-gb');
+        const inputName = document.getElementById('gb-input-name');
+        const inputMsg = document.getElementById('gb-input-msg');
+
+        // Probeer naam uit LocalStorage te halen (als ze al eens highscore hebben geplaatst)
+        const savedName = localStorage.getItem('klaverjas_username');
+        if(savedName) inputName.value = savedName;
+
+        btnPost.addEventListener('click', async () => {
+            const name = inputName.value;
+            const msg = inputMsg.value;
+
+            if(!name || !msg) {
+                alert("Vul wel even je naam en een berichtje in!");
+                return;
+            }
+
+            // Visuele feedback dat we bezig zijn
+            btnPost.textContent = "Bezig...";
+            btnPost.disabled = true;
+
+            const success = await gbService.postMessage(name, msg);
+
+            if (success) {
+                inputMsg.value = ''; // Veld leegmaken
+                // Naam opslaan voor volgende keer
+                localStorage.setItem('klaverjas_username', name);
+            }
+
+            // Knop herstellen
+            btnPost.textContent = "PLAATS BERICHT";
+            btnPost.disabled = false;
+        });
+    });
+</script>
 
 </body>
 </html>

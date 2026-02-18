@@ -249,7 +249,7 @@ renderLastTrick: function(trickData) {
         // 1. Reset de inhoud
         container.innerHTML = '';
         
-        // Verwijder eventuele oude info-blokken die we eerder hebben toegevoegd
+        // Verwijder eventuele oude info-blokken
         const oldDetails = document.getElementById('last-trick-details');
         if (oldDetails) oldDetails.remove();
         const oldInfo = document.getElementById('last-trick-info');
@@ -287,9 +287,8 @@ renderLastTrick: function(trickData) {
             container.appendChild(infoDiv);
             overlay.classList.remove('hidden');
             
-            // Klik om te sluiten
             overlay.onclick = () => overlay.classList.add('hidden');
-            return; // Klaar, we tekenen geen kaarten
+            return; 
         }
 
         // --- SITUATIE 2: ER IS WEL EEN SLAG ---
@@ -333,7 +332,14 @@ renderLastTrick: function(trickData) {
             container.appendChild(itemWrapper);
         });
 
-        // Details (Punten) toevoegen
+        // --- NIEUWE LOGICA: Spelinfo ophalen ---
+        const playingTeamText = KlaverjasMain.playingTeam === 'us' ? 'WIJ' : 'ZIJ';
+        const playingColor = KlaverjasMain.playingTeam === 'us' ? 'var(--accent-gold)' : 'var(--accent-red)';
+        
+        const ruleText = KJCore.ruleSet === 'amsterdam' ? '❌ A\'dams' : '⚓ R\'dams';
+        const modeText = KJCore.biddingMode === 'drents' ? '🎲 Drents' : '🖐️ Utr.';
+
+        // Details (Punten & Info) toevoegen
         const detailsDiv = document.createElement('div');
         detailsDiv.id = 'last-trick-details';
         detailsDiv.style.marginTop = '15px';
@@ -346,7 +352,13 @@ renderLastTrick: function(trickData) {
             ? `<div style="color:var(--accent-gold); margin-top:5px;">+ Roem: <strong>${trickData.roem.total}</strong> <span style="font-size:0.8em">(${trickData.roem.desc.join(', ')})</span></div>`
             : `<div style="color:#aaa; font-size:0.9em; margin-top:5px;">Geen roem</div>`;
 
+        // Hieronder is de HTML aangepast met de nieuwe info-balk bovenaan
         detailsDiv.innerHTML = `
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.85em; opacity:0.8; border-bottom:1px solid #555; padding-bottom:5px;">
+                <span>Spel: <strong style="color:${playingColor}">${playingTeamText}</strong></span>
+                <span>${ruleText} / ${modeText}</span>
+            </div>
+
             <div style="display:flex; justify-content:space-between; border-bottom:1px solid #555; padding-bottom:5px;">
                 <span>Kaartpunten:</span> <strong>${trickData.points}</strong>
             </div>
