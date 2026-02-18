@@ -174,60 +174,49 @@
 .toast { display: none !important; }
 
 /* =========================================
-   3. TAFEL & SPELERS (AANGEPAST VOOR GROOTTE)
+   3. TAFEL & SPELERS (CLEAN & BUG-VRIJ)
    ========================================= */
 
 .table-container {
     flex: 1;
     display: flex;
     justify-content: center;
-    /* We veranderen align-items van 'center' naar 'flex-start' 
-       zodat we zelf kunnen bepalen hoe hoog hij staat met padding */
     align-items: center; 
-    
     position: relative;
-    perspective: 1000px;
     z-index: 10;
-    
-    /* Zorgt dat het 'midden' iets naar boven verschuift */
     padding-bottom: 80px; 
-    
     background: radial-gradient(circle at center, rgba(93, 64, 55, 0.3) 0%, rgba(42, 27, 14, 0.6) 60%, rgba(30, 20, 10, 0.9) 100%);
 }
 
 .klaverjas-table {
-    /* GROTERE TAFEL */
-    width: 95%;          /* Was 85% - Neemt nu bijna de volle breedte op mobiel */
-    max-width: 58vh;     /* Was 45vh - Aanzienlijk groter op desktop/tablet */
+    /* GROOTTE */
+    width: 95%;          
+    max-width: 58vh;     
     aspect-ratio: 1/1;
     border-radius: 50%;
     
-    /* OMHOOG SCHUIVEN */
-    margin-top: -30px;   /* Trekt de tafel dichter naar het scorebord */
+    /* POSITIE */
+    margin-top: -30px;   
     
-    background: radial-gradient(circle, #8d6e63 0%, #4e342e 60%, #3e2723 100%);
+    /* DE FIX: GEEN 'inset' schaduw meer! */
+    /* We schilderen de schaduw direct in de achtergrond: */
+    /* Van lichtbruin (#8d6e63) in het midden, naar bijna zwart (#1a100c) aan de rand */
+    background: radial-gradient(circle, #8d6e63 20%, #4e342e 50%, #1a100c 95%);
     background-size: 100% 100%;
     
     border: 10px solid #281815;
     
+    /* ALLEEN schaduw naar buiten toe (onder de tafel) */
     box-shadow: 
-        inset 0 0 60px rgba(0,0,0,0.9),
         0 60px 100px rgba(0,0,0,0.8), 
         0 0 0 1px rgba(255,255,255,0.05);
         
     position: relative;
+    transform-style: flat; /* Zorgt dat mobiel niet in de war raakt met 3D lagen */
+    z-index: 10;
 }
 
-.klaverjas-table::after {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 30%; height: 30%;
-    background: rgba(0,0,0,0.1);
-    border-radius: 50%;
-    filter: blur(20px);
-}
+/* OUDE FIX VERWIJDERD: .klaverjas-table::after bestaat niet meer! */
 
 /* --- Speler Stijl --- */
 .player {
@@ -246,11 +235,9 @@
     background: var(--accent-cream);
     border: 4px solid var(--bg-wood);
     color: var(--text-dark);
-    
     font-family: var(--font-heading);
     font-weight: bold;
     font-size: 1.2em;
-    
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -553,14 +540,21 @@
 .table-anim-card {
     position: absolute;
     width: 65px; height: 96px;
-    z-index: 150;
+    
+    /* DWINGEN NAAR VOORGROND */
+    z-index: 9999 !important; 
+    opacity: 1 !important;
+    filter: none !important;
+    mix-blend-mode: normal !important;
+    
     transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
     
-    /* DE FIX: */
     border-radius: 6px;
-    box-shadow: 1px 2px 5px rgba(0,0,0,0.4);
+    /* Eenvoudige schaduw onder de kaart */
+    box-shadow: 1px 2px 5px rgba(0,0,0,0.5) !important;
     
-    transform: translate(-50%, -50%) scale(1.0);
+    /* Hardware versnelling trucje om rendering glitches te voorkomen */
+    transform: translate(-50%, -50%) scale(1.0) translateZ(10px);
 }
 
 /* 2. De Worp (Hoe de kaart begint als hij uit je hand komt) */
@@ -1181,30 +1175,6 @@
         max-width: 95vw;
     }
 
-    /* --- FIX: SCHADUWEN CORRIGEREN OP MOBIEL --- */
-    
-    /* 1. Reset de zware 'vliegende' schaduwen, grootte EN doorzichtigheid */
-    .table-anim-card, 
-    .fly-in-bottom, .fly-in-top, .fly-in-left, .fly-in-right {
-        box-shadow: 1px 2px 4px rgba(0,0,0,0.3) !important; /* Kleine schaduw */
-        transform: translate(-50%, -50%) scale(1.0) !important; /* Forceer normale grootte op tafel */
-        opacity: 1 !important;     /* <--- ESSENTIEEL: Maak kaart weer 100% wit/zichtbaar */
-        filter: none !important;   /* <--- EXTRA: Verwijder eventuele filters/dimming */
-        z-index: 200 !important;   /* <--- EXTRA: Zeker weten dat hij bovenop ligt */
-    }
-
-    /* 2. Verwijder de dubbele schaduw bij handkaarten */
-    .player-hand .hand-card {
-        box-shadow: none !important;
-    }
-
-    /* 3. Zorg dat de kaart zelf er fris uitziet */
-    .card-modern {
-        box-shadow: 1px 1px 3px rgba(0,0,0,0.3) !important;
-        border: 1px solid #999 !important; 
-        background-color: #fcfcf7 !important; /* Forceer de witte papierkleur */
-    }
-
     /* Styling voor de Info Knoppen in Instellingen */
 
     .settings-label-row {
@@ -1240,54 +1210,4 @@
         color: var(--accent-gold);
     }
 
-    /* Zorg dat de overlays bovenop liggen */
-    .overlay-backdrop {
-        z-index: 5000; /* Hoogste niveau */
-    }
-}
-
-/* ============================================================
-   DEFINITIEVE FIX: SCHADUW & HELDERHEID MOBIEL
-   (Plak dit helemaal onderaan game.css)
-   ============================================================ */
-
-/* 1. VERWIJDER DE BOOSDOENER */
-/* Dit verwijdert de decoratieve schaduw-vlek in het midden van de tafel.
-   Op mobiel komt deze vaak per ongeluk BOVENOP de kaarten te liggen. */
-.klaverjas-table::after {
-    display: none !important;
-    content: none !important;
-}
-
-/* 2. KAARTEN NAAR DE VOORGROND DWINGEN */
-/* We gebruiken z-index 9999 en 'transform: translateZ' om de browser
-   te dwingen de kaarten als aller-bovenste laag te renderen. */
-.table-anim-card {
-    z-index: 9999 !important;
-    opacity: 1 !important;
-    filter: none !important;
-    /* Een minieme brightness boost om zeker te zijn dat ze wit ogen */
-    filter: brightness(1.05) !important; 
-    /* Hardware acceleratie trucje: */
-    transform: translate(-50%, -50%) scale(1.0) translateZ(10px) !important;
-}
-
-/* 3. ZEKERHEID VOOR DE KAART ZELF */
-.table-anim-card .card-modern {
-    background-color: #fcfcf7 !important;
-    /* Verwijder gekke blend-modes als die er zijn */
-    mix-blend-mode: normal !important;
-    /* Simpele schaduw, geen ingewikkelde diepte */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
-}
-
-/* 4. TAFEL RAND SCHADUW VERMINDEREN */
-/* Soms valt de 'inset' schaduw van de tafel over de kaarten heen.
-   We maken de tafel op mobiel iets 'platter' van binnen. */
-@media (max-width: 600px) {
-    .klaverjas-table {
-        box-shadow: 
-            0 20px 50px rgba(0,0,0,0.8), /* Schaduw buitenkant mag blijven */
-            0 0 0 1px rgba(255,255,255,0.05) !important; /* Inset schaduw weggehaald! */
-    }
 }
