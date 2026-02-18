@@ -1,4 +1,4 @@
-/* game.css - Bruine Kroeg Editie - CLEAN & FIXED VERSION (1.4) */
+/* game.css - Bruine Kroeg Editie - VERSION 1.5 (NO-3D FIX) */
 
 /* =========================================
    1. MENU & ALGEMENE LAYOUT
@@ -156,7 +156,7 @@
 }
 
 /* =========================================
-   3. TAFEL & SPELERS (DE FIX)
+   3. TAFEL & SPELERS
    ========================================= */
 
 .table-container {
@@ -180,7 +180,7 @@
     border-radius: 50%;
     margin-top: -30px;   
     
-    /* DEFINITIEVE FIX: Geen overlay lagen, schaduw zit IN de verf */
+    /* Geen overlay lagen, schaduw zit IN de verf */
     background: radial-gradient(circle, #8d6e63 20%, #4e342e 50%, #1a100c 95%);
     background-size: 100% 100%;
     
@@ -244,14 +244,14 @@
 .p-right { right: 10px; top: 50%; transform: translateY(-50%); }
 
 /* =========================================
-   4. KAARTEN (CLEAN & BRIGHT)
+   4. KAARTEN (FIX 1.5 - PLATTE MODUS)
    ========================================= */
 
 .card-modern {
     width: 65px;
     height: 96px;
     
-    /* FIX: FEL WIT, GEEN TEXTUUR MEER */
+    /* BASIS: WIT EN SCHOON */
     background-color: #ffffff !important; 
     background-image: none !important; 
     
@@ -294,42 +294,53 @@
     pointer-events: none;
 }
 
-/* KAARTEN OP TAFEL (ANIMATIE) */
+/* KAARTEN OP TAFEL (ANIMATIE - DE FIX) */
 .table-anim-card {
     position: absolute;
     width: 65px; height: 96px;
     
-    /* DE GROTE FIX: ALLES 100% ZICHTBAAR */
+    /* 1. FORCEER DE HOOGSTE LAAG (PLAT) */
     z-index: 9999 !important; 
-    opacity: 1 !important;
-    filter: none !important;
-    mix-blend-mode: normal !important;
     
-    /* Hardware acceleration */
-    transform: translate(-50%, -50%) scale(1.0) translateZ(0);
+    /* 2. ACHTERGROND OOK OP DE CONTAINER ZETTEN */
+    background-color: #ffffff !important;
+    
+    /* 3. HELDERHEID BOOSTEN (Compenseer de grijze waas) */
+    filter: brightness(1.1) contrast(1.05) !important;
+    
+    /* 4. GEEN BLEND MODES */
+    mix-blend-mode: normal !important;
+    opacity: 1 !important;
+    
+    /* 5. ALLEEN 2D TRANSFORMATIES (Geen translateZ!) */
+    transform: translate(-50%, -50%) scale(1.0) !important;
     
     border-radius: 6px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important; /* Duidelijke schaduw ONDER de kaart */
+    /* Een simpele, harde schaduw */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5) !important;
+    
     transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Zorg dat de kaart IN de animatiecontainer ook wit blijft */
 .table-anim-card .card-modern {
-    background: #ffffff !important;
-    box-shadow: none !important; /* Schaduw zit op de container */
-    border: 1px solid #ccc !important;
+    background-color: #ffffff !important;
+    background-image: none !important;
+    box-shadow: none !important; 
+    border: 1px solid #bbb !important;
 }
 
-/* Animatie posities */
+/* Animatie posities - ALLEEN 2D */
 .fly-in-bottom { transform: translate(-50%, 300px) scale(1.3) rotate(-10deg) !important; opacity: 1 !important; }
 .fly-in-top    { transform: translate(-50%, -300px); opacity: 1 !important; }
 .fly-in-left   { transform: translate(-300px, -50%); opacity: 1 !important; }
 .fly-in-right  { transform: translate(300px, -50%); opacity: 1 !important; }
 
-.on-table-bottom { top: 65%; left: 50%; transform: translate(-50%, -50%); }
-.on-table-top    { top: 35%; left: 50%; transform: translate(-50%, -50%); }
-.on-table-left   { top: 50%; left: 35%; transform: translate(-50%, -50%); }
-.on-table-right  { top: 50%; left: 65%; transform: translate(-50%, -50%); }
+/* Rustposities - ALLEEN 2D */
+.on-table-bottom { top: 65%; left: 50%; transform: translate(-50%, -50%) !important; }
+.on-table-top    { top: 35%; left: 50%; transform: translate(-50%, -50%) !important; }
+.on-table-left   { top: 50%; left: 35%; transform: translate(-50%, -50%) !important; }
+.on-table-right  { top: 50%; left: 65%; transform: translate(-50%, -50%) !important; }
 
 /* =========================================
    5. SPELER HAND
