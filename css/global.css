@@ -242,9 +242,61 @@ body {
     text-align: left;
 }
 
-.hs-item { display: flex; align-items: center; background: rgba(255,255,255,0.05); margin-bottom: 8px; padding: 10px; border-radius: 6px; }
-.hs-name { font-family: var(--font-heading); color: var(--accent-cream); margin-left: 10px; flex: 1; }
-.hs-score { font-family: var(--font-card); color: var(--accent-gold); font-weight: bold; }
+/* --- LEIDERBORD STYLING FIX --- */
+.hs-list { 
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+}
+
+.hs-item { 
+    display: flex; 
+    align-items: center; 
+    background: rgba(0,0,0,0.5); /* Iets donkerder voor contrast */
+    margin-bottom: 10px; 
+    padding: 12px 15px; 
+    border-radius: 8px; 
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.hs-rank {
+    font-size: 1.5em;
+    width: 35px;
+    text-align: center;
+    margin-right: 15px;
+}
+
+.hs-info {
+    flex: 1; /* Dit duwt de score netjes helemaal naar rechts */
+    display: flex;
+    flex-direction: column; /* Zet naam en datum onder elkaar */
+    text-align: left;
+}
+
+.hs-name { 
+    font-family: var(--font-heading); 
+    color: var(--accent-cream); 
+    font-size: 1.3em;
+    line-height: 1.1;
+}
+
+.hs-date {
+    font-family: var(--font-body);
+    color: #999;
+    font-size: 0.8em;
+    margin-top: 4px;
+}
+
+.hs-score { 
+    font-family: var(--font-card); 
+    color: var(--accent-gold); 
+    font-size: 1.6em;
+    font-weight: bold; 
+    background: rgba(255, 193, 7, 0.1); /* Subtiel gouden vlakje achter de score */
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
 
 .settings-label-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
 .info-badge { background: var(--accent-gold); color: #000; border-radius: 50%; width: 25px; height: 25px; font-weight: bold; border: none; }
