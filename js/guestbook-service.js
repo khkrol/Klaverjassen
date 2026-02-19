@@ -1,10 +1,11 @@
-import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// Importeer de db direct vanuit je configuratiebestand
+import { db } from './firebase-config.js';
 
-// Verwijzing naar de database die al in window.DB zit (vanuit index.html)
-// We wachten even tot window.DB beschikbaar is
-const db = window.DB; 
+// Gebruik exact dezelfde versie (10.7.1) als de rest van je applicatie
+import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const COLLECTION_NAME = 'guestbook';
+// Hier geven we de collectie een unieke naam voor dit specifieke spel!
+const COLLECTION_NAME = 'guestbook_klaverjas';
 
 export class GuestbookService {
     constructor() {
@@ -14,7 +15,7 @@ export class GuestbookService {
 
     // Luister naar berichten (Real-time!)
     startListening() {
-        if (!window.DB) {
+        if (!db) {
             console.error("Firebase DB niet gevonden!");
             this.renderError();
             return;
@@ -24,7 +25,7 @@ export class GuestbookService {
 
         // Haal de laatste 30 berichten op, nieuwste bovenaan
         const q = query(
-            collection(window.DB, COLLECTION_NAME),
+            collection(db, COLLECTION_NAME),
             orderBy("timestamp", "desc"),
             limit(30)
         );
@@ -83,7 +84,7 @@ export class GuestbookService {
         if (!name.trim() || !message.trim()) return false;
         
         try {
-            await addDoc(collection(window.DB, COLLECTION_NAME), {
+            await addDoc(collection(db, COLLECTION_NAME), {
                 name: name.trim(),
                 message: message.trim(),
                 timestamp: serverTimestamp()
