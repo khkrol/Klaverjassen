@@ -85,7 +85,7 @@ bindEvents: function() {
     showLeaderboard: function() {
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('leaderboard-view').classList.remove('hidden');
-        if (window.LeaderboardService) window.LeaderboardService.getTopScores('highscore-list');
+        if (window.LeaderboardService) window.LeaderboardService.getTopScores('klaverjas','highscore-list');
     },
 
     showRules: function() {
@@ -652,7 +652,7 @@ setupGameOverButtons: function(totalScore) {
         btnSave.disabled = true;
         
         if (window.LeaderboardService) {
-            const success = await window.LeaderboardService.saveScore(name, totalScore.us);
+            const success = await window.LeaderboardService.saveScore('klaverjas', name, totalScore.us);
             
             if (success) {
                 // 2. SUCCES: Verander de knop en tekst

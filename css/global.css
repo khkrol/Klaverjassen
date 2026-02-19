@@ -140,3 +140,145 @@ body {
     box-shadow: 0 0 15px rgba(255, 193, 7, 0.6) !important;
 }
 
+/* =========================================
+   ALGEMENE SCHERMEN & MENU (APP SHELL)
+   ========================================= */
+
+.screen-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    text-align: center;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+}
+
+/* --- LOGO --- */
+.logo-area {
+    margin-bottom: 15px;
+    flex-shrink: 0;
+}
+
+.logo-area h1 {
+    font-family: var(--font-heading);
+    font-size: 3em; 
+    line-height: 1;
+    margin: 0;
+    color: var(--accent-gold);
+    text-shadow: 2px 2px 0px #3e2723; 
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-family: var(--font-heading);
+    letter-spacing: 2px;
+    font-size: 0.9em;
+    margin-top: 5px;
+    border-top: 1px solid var(--text-muted);
+    border-bottom: 1px solid var(--text-muted);
+    padding: 2px 0;
+    display: inline-block;
+}
+
+/* --- MENU KNOPPEN --- */
+.menu-buttons {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 20px;
+}
+
+#main-menu .btn-primary {
+    width: 90%;
+    max-width: 340px;
+    padding: 12px 0;
+    font-size: 1em;
+    margin: 0;
+}
+
+#btn-start-game {
+    background: linear-gradient(to bottom, #ffd700, #cba300) !important;
+    border-color: #9e7e00 !important;
+    color: #4a3500 !important;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.3) !important;
+}
+
+#btn-topscores {
+    background: linear-gradient(to bottom, #e0e0e0, #a0a0a0) !important;
+    border-color: #666 !important;
+    color: #333 !important;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.4) !important;
+}
+
+#btn-guestbook {
+    background: linear-gradient(to bottom, #cd8c4e, #965a23) !important;
+    border-color: #5d3a1a !important;
+    color: #fff !important;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.6) !important;
+}
+
+/* --- OVERLAYS & CONTAINERS --- */
+.overlay-backdrop { 
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    z-index: 2500;
+    display: flex; justify-content: center; align-items: center;
+}
+
+.leaderboard-container, .rules-container {
+    background: rgba(0,0,0,0.3);
+    border: 2px solid var(--bg-wood-light);
+    border-radius: 10px;
+    width: 100%; max-height: 60vh;
+    overflow-y: auto; padding: 10px;
+    text-align: left;
+}
+
+.hs-item { display: flex; align-items: center; background: rgba(255,255,255,0.05); margin-bottom: 8px; padding: 10px; border-radius: 6px; }
+.hs-name { font-family: var(--font-heading); color: var(--accent-cream); margin-left: 10px; flex: 1; }
+.hs-score { font-family: var(--font-card); color: var(--accent-gold); font-weight: bold; }
+
+.settings-label-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
+.info-badge { background: var(--accent-gold); color: #000; border-radius: 50%; width: 25px; height: 25px; font-weight: bold; border: none; }
+
+/* --- GASTENBOEK STYLING --- */
+.guestbook-container {
+    background: rgba(0,0,0,0.3);
+    border: 2px solid var(--bg-wood-light);
+    border-radius: 10px;
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+.gb-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.gb-item {
+    background: var(--accent-cream);
+    color: var(--text-dark);
+    padding: 10px;
+    border-radius: 2px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+    font-family: 'Patrick Hand', cursive, sans-serif;
+    transform: rotate(-1deg);
+    position: relative;
+}
+.gb-item:nth-child(even) { transform: rotate(1deg); background: #f0e6ce; }
+
+.gb-header { display: flex; justify-content: space-between; font-size: 0.8em; color: #666; border-bottom: 1px dashed #999; padding-bottom: 4px; margin-bottom: 4px; font-weight: bold; }
+.gb-msg { font-size: 1.1em; line-height: 1.2; }
+
+.guestbook-input-area { width: 100%; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
+#gb-input-name, #gb-input-msg { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--bg-wood); font-family: sans-serif; background: #fff; color: #000; }
+#gb-input-msg { resize: none; height: 60px; }

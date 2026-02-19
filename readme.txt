@@ -27,7 +27,7 @@ met een optionele koppeling naar Firebase voor de highscores.
  │
  ├── css/                   -> Opmaak & Stijlen.
  [cite_start]│   ├── global.css         -> Algemene layout & kleuren[cite: 46].
- [cite_start]│   ├── game.css           -> Specifieke spel-elementen[cite: 47].
+ [cite_start]│   ├── klaverjas.css           -> Specifieke spel-elementen[cite: 47].
  [cite_start]│   └── css-readme.txt     -> Gedetailleerde uitleg over de CSS[cite: 5].
  │
  └── js/                    -> Logica & Functionaliteit.

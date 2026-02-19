@@ -18,7 +18,7 @@
     <link rel="preload" href="assets/img/hoofdstijl.jpg" as="image">
 
     <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/game.css">
+    <link rel="stylesheet" href="css/klaverjas.css">
 
     <script type="module">
         import { db } from './js/firebase-config.js';
@@ -348,7 +348,7 @@
                 </div>
             </div>
 
-            <div id="last-trick-overlay" class="hidden">
+            <div id="last-trick-overlay" class="hidden overlay-backdrop">
                 <div class="last-trick-container">
                     <h3 style="margin-bottom:15px;">Vorige Slag</h3>
                     <div class="last-trick-cards" id="last-trick-cards" style="display:flex; gap:10px; pointer-events:none;"></div>
@@ -356,7 +356,7 @@
                 </div>
             </div>
 
-            <div id="game-over-overlay" class="hidden">
+            <div id="game-over-overlay" class="hidden overlay-backdrop">
                 <div class="game-over-container">
                     <h2 id="go-title">BOOMPJE COMPLEET!</h2>
                     
@@ -381,7 +381,7 @@
                 </div>
             </div>
 
-            <div id="round-end-overlay" class="hidden">
+            <div id="round-end-overlay" class="hidden overlay-backdrop">
                 <div class="round-end-container">
                     <h2 id="re-title" style="color:var(--accent-gold); margin:0 0 15px 0; text-shadow: 2px 2px 0 #000;">
                         RONDE VOORBIJ
@@ -412,7 +412,7 @@
                 </div>
             </div>
 
-        </div> <div id="score-sheet-overlay" class="hidden">
+        </div> <div id="score-sheet-overlay" class="hidden overlay-backdrop">
             <div class="score-sheet-container">
                 <h3>De Boomlijst</h3>
                 

@@ -4,7 +4,7 @@ const CACHE_NAME = 'klaas-klaverjas-live'; // Naam mag nu constant blijven
 const CORE_ASSETS = [
   './index.html',
   './css/global.css',
-  './css/game.css',
+  './css/klaverjas.css',
   './js/klaverjas-core.js',
   './js/klaverjas-main.js',
   './js/klaverjas-ui.js',

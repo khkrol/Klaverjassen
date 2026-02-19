@@ -4,17 +4,19 @@ import { collection, addDoc, query, where, orderBy, limit, getDocs } from "https
 
 const LeaderboardService = {
     
-    saveScore: async function(playerName, score) {
+    // NIEUW: We vragen nu om een 'gameId' (bijv. 'klaverjas' of 'klondike')
+    saveScore: async function(gameId, playerName, score) {
         const name = playerName.trim() || "Anoniem";
         const now = Date.now(); 
+        const collectionName = `scores_${gameId}`; // Maakt dynamisch de mapnaam aan
 
         try {
-            await addDoc(collection(db, "scores"), {
+            await addDoc(collection(db, collectionName), {
                 name: name,
                 score: score,
                 date: now
             });
-            console.log(`Score opgeslagen: ${name} - ${score}`);
+            console.log(`Score opgeslagen in ${collectionName}: ${name} - ${score}`);
             return true;
         } catch (e) {
             console.error("Fout bij opslaan: ", e);
@@ -23,7 +25,8 @@ const LeaderboardService = {
         }
     },
 
-    getTopScores: async function(listElementId) {
+    // NIEUW: We vragen nu om een 'gameId' bij het ophalen
+    getTopScores: async function(gameId, listElementId) {
         const listElement = document.getElementById(listElementId);
         if (!listElement) return;
 
@@ -31,10 +34,11 @@ const LeaderboardService = {
 
         // 7 dagen geleden
         const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+        const collectionName = `scores_${gameId}`; // Bepaalt in welke map we zoeken
 
         try {
             const q = query(
-                collection(db, "scores"),
+                collection(db, collectionName),
                 where("date", ">", sevenDaysAgo),
                 orderBy("score", "desc"),
                 limit(10)
@@ -53,7 +57,7 @@ const LeaderboardService = {
 
         } catch (error) {
             console.error("Ophalen mislukt:", error);
-            listElement.innerHTML = '<li class="error-state">Kan lijst niet laden.<br><small>Check console voor Index link</small></li>';
+            listElement.innerHTML = '<li class="error-state">Kan lijst niet laden.<br><small>Check console voor details</small></li>';
         }
     },
 

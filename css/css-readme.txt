@@ -12,7 +12,7 @@ in twee bestanden om globale instellingen te scheiden van specifieke spel-elemen
 ------------------------------------------------------------------------------
 
 1. global.css  -> De basis. Kleurenpalet, lettertypes, algemene layout en knoppen.
-2. game.css    -> De details. Alles wat specifiek is voor het spel (kaarten, tafel, popups).
+2. klaverjas.css    -> De details. Alles wat specifiek is voor het spel (kaarten, tafel, popups).
 
 ------------------------------------------------------------------------------
  2. GLOBAL.CSS - DE BASIS
@@ -38,7 +38,7 @@ C. Knoppen (.btn-primary, .btn-secondary)
    - Bevatten 3D-effecten (border-bottom) en gradients.
 
 ------------------------------------------------------------------------------
- 3. GAME.CSS - HET SPEL
+ 3. KLAVERJAS.CSS - HET SPEL
 ------------------------------------------------------------------------------
 Dit bestand is opgedeeld in genummerde secties.
 
@@ -107,11 +107,11 @@ Om te zorgen dat popups altijd bovenop liggen, gebruiken we deze lagen:
   -> Ga naar global.css -> :root -> --bg-chalk
 
 - Wil je de kaarten groter/kleiner maken?
-  -> Ga naar game.css -> .card-modern (pas width/height aan).
+  -> Ga naar klaverjas.css -> .card-modern (pas width/height aan).
   -> Let op: Pas ook de overlap aan in .hand-card en de @media query onderaan.
 
 - Past de hand niet op een iPhone mini?
-  -> Ga naar game.css -> @media (max-width: 600px) -> .hand-card.
+  -> Ga naar klaverjass.css -> @media (max-width: 600px) -> .hand-card.
   -> Verhoog de negatieve margin (bijv. van -40px naar -45px).
 
 ==============================================================================

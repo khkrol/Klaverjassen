@@ -98,6 +98,6 @@ Module voor communicatie met de database.
 - **Spelsnelheid aanpassen:** In `klaverjas-main.js` -> variabele `gameSpeed`.
 - **Nieuwe regels toevoegen:** Aanpassen in `klaverjas-core.js` -> `validateMove`.
 - **Puntentelling wijzigen:** Aanpassen in `klaverjas-config.js`.
-- **Layout wijzigingen:** Check `game.css` en `klaverjas-ui.js` (render functies).
+- **Layout wijzigingen:** Check `klaverjas.css` en `klaverjas-ui.js` (render functies).
 
 ==============================================================================
